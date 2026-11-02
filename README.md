@@ -1,224 +1,254 @@
-# Social Media Skills Engine
+# Маркетинговые навыки для ИИ — Social Media Skills Engine
 
-The Social Media Skills Engine (repository `social-media-skills`) is the Chwezi digital marketing and advertising engine: a library of 112 routed skills for consultancy work in Uganda and East Africa.
+[Полный каталог навыков на русском](skills/README.md) · [Английский оригинал README](README.en.md)
 
-It plans, specifies, writes, audits and reports. Spending money, changing live ad accounts, publishing and contacting people always require explicit client authority.
+> Русский перевод документации в копии `karlinfam-maker/social-media-skills`. Исходный проект — [peterbamuhigire/social-media-skills](https://github.com/peterbamuhigire/social-media-skills). Перевод выполнен 3 ноября 2026 года. Идентификаторы навыков, пути, команды, даты и результаты проверок сохранены; перевод не означает адаптацию методик и правил к российскому рынку.
 
-It is for agency owners, account leads, strategists, media planners, copywriters, paid-media specialists, in-house marketing teams and founders who need reviewable, evidence-backed marketing decisions. Every deliverable passes an anti-slop and human-review gate.
+Social Media Skills Engine, репозиторий `social-media-skills`, — система Chwezi для работы с digital-маркетингом и рекламой: библиотека из 112 навыков с правилами выбора подходящего навыка для консалтинговых задач в Уганде и Восточной Африке.
 
-## At a glance
+Система планирует, описывает требования, пишет, проверяет и готовит отчёты. Расходование денег, изменение действующих рекламных кабинетов, публикации и обращения к людям всегда требуют явного разрешения клиента.
 
-Figures as of 2026-10-31.
+Набор предназначен для владельцев агентств, руководителей клиентского направления, стратегов, медиапланеров, копирайтеров, специалистов по платному продвижению, внутренних маркетинговых команд и основателей бизнеса, которым нужны проверяемые маркетинговые решения с подтверждающими данными. Каждый результат проходит проверку на шаблонность ИИ-контента и проверку человеком.
 
-- **112 active skills** in 15 categories under `skills/`. A further 83 retired skills route to an active owner.
-- **400 routing fixtures**: all 400 place the expected skill in the top three and 381 (95.2%) place it first. This is a lexical proxy, not live routing. All 125 owned negatives pass.
-- **116 tests** pass under `unittest`, and the skill validator reports 112 of 112 skills compliant.
-- **179 dated source records** sit under a freshness gate.
-- **`check_source_freshness.py` exits 1 by design.** Five quarantined records stay `NOT_ASSESSED` until their primary text is read (see [Quality and improvement](#quality-and-improvement)).
-- **Published score 60.0 of 100**, self-assessed and capped at 65. The target is 95.
+<!--
+catalogue-compatibility: стабильные маркеры для существующего tests/test_engine_quality.py
+library of 112 routed skills
+112 active `SKILL.md` files
+| **Total** | **112** |
+-->
 
-### Start here
+<a id="at-a-glance"></a>
+## Кратко о составе и состоянии
 
-1. **Install** the plugin in Claude Code. Other routes are under [Installation](#installation).
+Данные по состоянию на 31 октября 2026 года.
+
+- **112 действующих навыков** в 15 категориях внутри `skills/`. Ещё 83 устаревших навыка перенаправляют к действующему навыку, которому переданы их материалы.
+- **400 контрольных примеров выбора навыка:** во всех 400 ожидаемый навык попадает в первую тройку, а в 381 случае — на первое место: 95,2%. Это лексическая имитация выбора по тексту, а не проверка работы модели в реальном диалоге. Все 125 отрицательных примеров с закреплённым ожидаемым поведением проходят проверку.
+- **116 тестов** проходят в `unittest`; валидатор навыков подтверждает соответствие требованиям всех 112 навыков.
+- **179 датированных записей об источниках** находятся под контролем актуальности.
+- **`check_source_freshness.py` намеренно завершается с кодом 1.** Пять записей остаются на карантине со статусом `NOT_ASSESSED`, пока не прочитан первичный текст источников; см. [качество и улучшения](#quality-and-improvement).
+- **Опубликованная оценка — 60,0 из 100:** это самооценка, для которой установлен верхний предел 65. Цель — 95.
+
+<a id="start-here"></a>
+### С чего начать
+
+1. **Установите** плагин в Claude Code. Другие варианты перечислены в разделе [установка](#installation).
 
    ```text
    /plugin marketplace add https://github.com/peterbamuhigire/social-media-skills
    /plugin install social@chwezi-social
    ```
 
-2. **Check** a clone from its root. This needs Python 3.11 or later with `PyYAML`. Expect exit 0 and `skills=112 compliant=112 failures=0`. [Validation](#validation) lists every check.
+2. **Проверьте** локальную копию из корня репозитория. Нужны Python 3.11 или новее и `PyYAML`. Ожидаемый результат — код 0 и строка `skills=112 compliant=112 failures=0`. Полный список проверок — в разделе [проверка](#validation).
 
    ```sh
    python3 -X utf8 scripts/validate_skill_engine.py --baseline quality-baseline.json
    ```
 
-3. **Use** it by describing the work in plain words. The router in [`AGENTS.md`](AGENTS.md) picks the skill. This prompt is a routing fixture that expects `11-content-calendar`:
+3. **Используйте** набор, описывая задачу обычными словами. Правила в [`AGENTS.md`](AGENTS.md) выбирают подходящий навык. Например, следующий запрос соответствует контрольному примеру для `11-content-calendar`:
 
    ```text
-   Build a four-week posting schedule with dates, owners, channels and approval status
+   Составь график публикаций на четыре недели: даты, ответственные, каналы и статус согласования.
    ```
 
-## Contents
+<a id="contents"></a>
+## Содержание
 
-- [When to use it](#when-to-use-it)
-- [Capabilities](#capabilities)
-- [Find the right skill](#find-the-right-skill)
-- [How it works](#how-it-works)
-- [Standards the engine checks against](#standards-the-engine-checks-against)
-- [Approval boundaries](#approval-boundaries)
-- [What is inside](#what-is-inside)
-- [Installation](#installation)
-- [Validation](#validation)
-- [Quality and improvement](#quality-and-improvement)
-- [What the October 2026 kaizen improved](#what-the-october-2026-kaizen-improved)
-- [The 17 changes, by type](#the-17-changes-by-type)
-- [Skill catalogue: strategy, advertising and measurement](#skill-catalogue-strategy-advertising-and-measurement)
-- [Skill catalogue: content, channels, operations and training](#skill-catalogue-content-channels-operations-and-training)
-- [Retired skill routes](#retired-skill-routes)
-- [Sources and references](#sources-and-references)
-- [Contributing, author and licence](#contributing-author-and-licence)
+- [Когда использовать набор](#when-to-use-it)
+- [Возможности](#capabilities)
+- [Как найти подходящий навык](#find-the-right-skill)
+- [Как устроена система](#how-it-works)
+- [По каким стандартам проводится проверка](#standards-the-engine-checks-against)
+- [Какие действия требуют разрешения](#approval-boundaries)
+- [Что находится внутри](#what-is-inside)
+- [Установка](#installation)
+- [Проверка](#validation)
+- [Качество и улучшения](#quality-and-improvement)
+- [Что улучшили циклы Kaizen в октябре 2026 года](#what-the-october-2026-kaizen-improved)
+- [17 изменений по направлениям](#the-17-changes-by-type)
+- [Каталог: стратегия, реклама и измерения](#skill-catalogue-strategy-advertising-and-measurement)
+- [Каталог: контент, каналы, процессы и обучение](#skill-catalogue-content-channels-operations-and-training)
+- [Перенаправления устаревших навыков](#retired-skill-routes)
+- [Источники и ссылки](#sources-and-references)
+- [Участие в проекте, автор и лицензия](#contributing-author-and-licence)
 
-## When to use it
+Отдельно доступен [каталог всех 112 навыков с русскими названиями, описаниями и ссылками](skills/README.md).
 
-Use the engine when the deliverable is text that a client or reviewer will read, check and approve:
+<a id="when-to-use-it"></a>
+## Когда использовать набор
 
-- Client briefs, personas and platform audits, and the strategies built on them.
-- Advertising strategy, budgets, media plans with reach and frequency, and creative briefs.
-- Ad copy, captions, emails, content calendars and publication-ready copy in British English, East African English, French or Kiswahili.
-- Paid search and paid social build specifications for Google Ads, Meta, TikTok and LinkedIn.
-- Measurement plans, dashboards, monthly reports and ROI cases.
-- Agency operations: playbooks, policies, proposals, pricing menus and training workbooks.
+Используйте систему, когда нужен текстовый результат, который клиент или проверяющий сможет прочитать, проверить и согласовать:
 
-The engine does not produce finished visual design, video, code or web builds, and it gives no legal advice. Route that work as follows.
+- Клиентские брифы, портреты аудитории, аудиты платформ и стратегии на их основе.
+- Рекламные стратегии, бюджеты, медиапланы с охватом и частотой, креативные брифы.
+- Рекламные тексты, тексты публикаций, письма, контент-календари и материалы для публикации на британском или восточноафриканском английском, французском либо суахили.
+- Требования к настройке поисковой рекламы и рекламы в Google Ads, Meta, TikTok и LinkedIn.
+- Планы измерений, дашборды, ежемесячные отчёты и обоснования ROI.
+- Организация агентства: рабочие инструкции, политики, предложения, перечни услуг с ценами и учебные материалы.
 
-| Need | Use instead |
+Система не создаёт готовый визуальный дизайн, видео, программный код и сайты; юридические консультации также находятся за пределами её задач. Такие работы направляются в следующие наборы.
+
+| Задача | Куда направить |
 |---|---|
-| Finished visual design and brand assets | `chwezi-design-engine` |
-| Website build | `website-skills`, through the `ad-to-site-journey-handoff` skill |
-| Formal tenders and expressions of interest | `proposal-skills` |
-| Business plans and full marketing plan documents | `business-plan-skills` |
-| Tax, accounting and financial statements | `chwezi-accounting-doctrine` |
-| Current facts and live research | `digital-research-skills` (catalogue id; repository `chwezi-research-engine`) |
+| Готовый визуальный дизайн и материалы бренда | `chwezi-design-engine` |
+| Разработка сайта | `website-skills`, через навык `ad-to-site-journey-handoff` |
+| Официальные тендеры и выражения заинтересованности | `proposal-skills` |
+| Бизнес-планы и полные документы маркетингового плана | `business-plan-skills` |
+| Налоги, бухгалтерский учёт и финансовая отчётность | `chwezi-accounting-doctrine` |
+| Актуальные факты и исследование текущей ситуации | `digital-research-skills`: идентификатор в каталоге; репозиторий `chwezi-research-engine` |
 
-Defaults apply unless you name another market: Uganda and East Africa, British English, UGX, East Africa Time (UTC+3) and a WhatsApp-first channel mix.
+Если другой рынок не указан, действуют исходные настройки: Уганда и Восточная Африка, британский английский, валюта UGX, восточноафриканское время UTC+3 и набор каналов с приоритетом WhatsApp.
 
-## Capabilities
+<a id="capabilities"></a>
+## Возможности
 
-The engine holds 112 active skills in 15 categories, grouped under [What is inside](#what-is-inside); a further 83 retired skills route to an active owner. The table under Find the right skill is the capability map: common tasks and the skill that handles each.
+Набор содержит 112 действующих навыков в 15 категориях, перечисленных в разделе [что находится внутри](#what-is-inside). Ещё 83 устаревших навыка перенаправляют к действующим. Таблица ниже связывает типовые задачи с навыками, которые их выполняют.
 
-### Find the right skill
+<a id="find-the-right-skill"></a>
+### Как найти подходящий навык
 
-Describe the task in plain words. The router in [`AGENTS.md`](AGENTS.md) chooses the skill. If you already know the task, open the skill directly. The tasks below paraphrase prompts in `tests/routing-fixtures.json`.
+Опишите задачу обычными словами: правила в [`AGENTS.md`](AGENTS.md) выберут подходящий навык. Если нужный навык уже известен, откройте его напрямую. Формулировки ниже пересказывают запросы из `tests/routing-fixtures.json`.
 
-| Task | Skill |
+| Задача | Навык |
 |---|---|
-| Capture a new client's brief and mark the gaps | `pipeline/01-client-brief` |
-| Write one joined-up marketing plan for the year | `pipeline/06-digital-marketing-strategy` |
-| Set next year's advertising budget | `advertising/advertising-strategy-and-budget` |
-| Build a media plan with reach, frequency, GRPs and flighting | `advertising/media-planning` |
-| Plan Meta paid social, including click-to-WhatsApp ads | `playbooks/playbook-paid-social-advertising` |
-| Plan a Google Ads search campaign | `advertising/paid-search-advertising` |
-| Build a four-week posting schedule with owners and approval status | `pipeline/11-content-calendar` |
-| Write Instagram captions from an approved brief | `content-writing/caption-writer` |
-| Respond to a viral complaint before the evening news | `playbooks/playbook-crisis-communications` |
-| Check a cookie banner and data retention against Uganda's law | `meta-analytics-ops/measurement-tracking-plan` |
-| Draft a client proposal after a discovery call | `business-development/biz-dev-proposal` |
-| Grade a draft for generic AI patterns | `ai-marketing/ai-slop-audit` |
+| Собрать бриф нового клиента и отметить недостающие данные | `pipeline/01-client-brief` |
+| Подготовить единый маркетинговый план на год | `pipeline/06-digital-marketing-strategy` |
+| Определить рекламный бюджет на следующий год | `advertising/advertising-strategy-and-budget` |
+| Составить медиаплан с охватом, частотой, GRP и периодами активности | `advertising/media-planning` |
+| Спланировать рекламу в Meta, включая переходы в WhatsApp | `playbooks/playbook-paid-social-advertising` |
+| Спланировать поисковую кампанию Google Ads | `advertising/paid-search-advertising` |
+| Составить график публикаций на четыре недели с ответственными и статусами согласования | `pipeline/11-content-calendar` |
+| Написать тексты публикаций Instagram по согласованному брифу | `content-writing/caption-writer` |
+| Подготовить реакцию на быстро распространяющуюся жалобу до вечерних новостей | `playbooks/playbook-crisis-communications` |
+| Проверить уведомление о cookie и хранение данных с учётом законодательства Уганды | `meta-analytics-ops/measurement-tracking-plan` |
+| Подготовить предложение клиенту после установочной встречи | `business-development/biz-dev-proposal` |
+| Проверить черновик на типовые признаки шаблонного ИИ-текста | `ai-marketing/ai-slop-audit` |
 
-Never run an `ALIAS.md` file. It marks a retired skill; see [Retired skill routes](#retired-skill-routes).
+Никогда не выполняйте файл `ALIAS.md`: он обозначает устаревший навык. См. [перенаправления устаревших навыков](#retired-skill-routes).
 
-## How it works
+<a id="how-it-works"></a>
+## Как устроена система
 
-Claude Code reads [`CLAUDE.md`](CLAUDE.md), which imports [`AGENTS.md`](AGENTS.md). That file is the router. It maps each kind of deliverable to one skill and names the skills that apply to every task, such as the language standards and the anti-slop gate.
+Claude Code читает [`CLAUDE.md`](CLAUDE.md), который подключает [`AGENTS.md`](AGENTS.md). В последнем находятся правила выбора навыка: они связывают каждый вид результата с одним навыком и перечисляют общие проверки, например языковые стандарты и проверку на шаблонность ИИ-контента.
 
-- **Skills.** Each skill is `skills/<category>/<skill-name>/SKILL.md`, with optional `references/`, `scripts/` and `assets/`. A `SKILL.md` stays within 300 lines. Deeper material sits in `references/`.
-- **Pipeline.** Skills `01` to `13` in `skills/pipeline/` run in order from client brief to campaign brief. Other skills join at any step.
-- **Gates.**
-  - Every deliverable passes the anti-slop gate (`ai-marketing/anti-ai-slop`).
-  - Finished creative also passes [`docs/quality-gates/creative-review-gate.md`](docs/quality-gates/creative-review-gate.md).
-  - Paid media, WhatsApp, influencer, AI, UGC, public-sector and current-market work also passes [`docs/quality-gates/legal-market-release-gate.md`](docs/quality-gates/legal-market-release-gate.md).
-- **Evidence.** Platform, legal and market claims cite a record in the source register. A stale or unavailable source makes the check `not assessed`.
-- **Control plane.** The shared agent, hook and handoff behaviour is mapped in [`docs/control-plane-adoption.md`](docs/control-plane-adoption.md).
+- **Навыки.** Каждый расположен в `skills/<category>/<skill-name>/SKILL.md`; дополнительно могут быть папки `references/`, `scripts/` и `assets/`. Размер `SKILL.md` не превышает 300 строк; подробности вынесены в `references/`.
+- **Последовательность работы.** Навыки с номерами от `01` до `13` в `skills/pipeline/` проходят путь от клиентского брифа до брифа кампании. Остальные подключаются на нужном этапе.
+- **Контрольные проверки.**
+  - Каждый результат проходит проверку на шаблонность ИИ-контента: `ai-marketing/anti-ai-slop`.
+  - Готовый креатив дополнительно проверяется по [`docs/quality-gates/creative-review-gate.md`](docs/quality-gates/creative-review-gate.md).
+  - Платная реклама, WhatsApp, инфлюенсеры, ИИ, пользовательский контент, государственный сектор и сведения о текущем рынке дополнительно проверяются по [`docs/quality-gates/legal-market-release-gate.md`](docs/quality-gates/legal-market-release-gate.md).
+- **Подтверждения.** Сведения о платформах, законодательстве и рынке должны ссылаться на запись реестра источников. Устаревший или недоступный источник означает статус проверки `not assessed` — «не оценено».
+- **Координация.** Общее поведение агентов, обработчиков команд и передачи работы описано в [`docs/control-plane-adoption.md`](docs/control-plane-adoption.md).
 
-## Standards the engine checks against
+<a id="standards-the-engine-checks-against"></a>
+## По каким стандартам проводится проверка
 
-The engine works to named standards rather than house opinion.
+Система опирается на конкретные стандарты, а не только на внутренние представления автора.
 
-- Personal-data and direct-marketing work is checked against the Uganda Data Protection and Privacy Act 2019 (read from primary text, with a recorded scope), with the Ugandan 2021 Regulations and the Kenyan, Rwandan and Tanzanian data-protection laws held in a dated source register (`docs/source-registers/source-register.json`, 179 records under a freshness gate).
-- The Ugandan Regulations and the Kenyan and Rwandan records are quarantined as `NOT_ASSESSED` until their primary text is read (see [Quality and improvement](#quality-and-improvement)).
-- Advertising claims are checked against the Uganda Communications Commission Advertising Standards 2019, through a clause screen that marks application to social posts `NOT_ASSESSED` because the standard names neither social media nor influencers, and the ICC Advertising and Marketing Communications Code.
-- Influencer disclosure is checked against the FTC Endorsement Guides and ASA/CAP guidance.
-- Platform mechanics are checked against the Meta, WhatsApp, TikTok, LinkedIn and Google policy pages in the same register.
-- Web accessibility is checked against WCAG 2.2.
-- Method draws on named practitioner texts, among them Chaffey's RACE, Bodnar and Cohen's social ROI formula, Weinberg and Mares's Bullseye and Kotler's segmentation and positioning (full list in [docs/references.md](docs/references.md)).
+- Работа с персональными данными и прямым маркетингом проверяется по закону Уганды о защите данных и конфиденциальности 2019 года: первичный текст прочитан, границы проверки зафиксированы. Правила Уганды 2021 года и нормы защиты данных Кении, Руанды и Танзании внесены в датированный реестр `docs/source-registers/source-register.json`: 179 записей с контролем актуальности.
+- Правила Уганды, а также записи о Кении и Руанде помещены на карантин со статусом `NOT_ASSESSED` до чтения первичного текста; см. [качество и улучшения](#quality-and-improvement).
+- Рекламные утверждения проверяются по стандартам рекламы Комиссии по коммуникациям Уганды 2019 года и Кодексу рекламных и маркетинговых коммуникаций ICC. Проверка отдельных положений отмечает применимость стандарта Уганды к публикациям в соцсетях как `NOT_ASSESSED`: стандарт не называет ни социальные сети, ни инфлюенсеров.
+- Раскрытие рекламного характера публикаций инфлюенсеров проверяется по FTC Endorsement Guides и рекомендациям ASA/CAP.
+- Механика платформ проверяется по страницам правил Meta, WhatsApp, TikTok, LinkedIn и Google в том же реестре.
+- Доступность веб-материалов проверяется по WCAG 2.2.
+- Методики опираются на названные практические источники, включая RACE Чаффи, формулу ROI социальных сетей Боднара и Коэна, Bullseye Вайнберга и Мареса, сегментацию и позиционирование Котлера. Полный список — в [docs/references.md](docs/references.md).
 
-## Approval boundaries
+<a id="approval-boundaries"></a>
+## Какие действия требуют разрешения
 
-- Research, planning, drafting, auditing and reporting run without special permission.
-- Ad spend, live ad-account or platform changes, publishing, messaging and outreach to real people, and personal-data processing need explicit client authority; without it the engine returns a draft marked for approval.
-- Changing legal, platform or market claims must cite a current record in `docs/source-registers/source-register.json`; a stale or unavailable source makes the check `not assessed`.
-- Visual execution routes to the design engine (`chwezi-design-engine`, held in a folder named `design-system-skills` on some machines); website builds route to `website-skills`.
+- Исследование, планирование, подготовка черновиков, аудит и отчётность выполняются без отдельного разрешения.
+- Рекламные расходы, изменения действующих рекламных кабинетов и платформ, публикации, сообщения и обращения к реальным людям, обработка персональных данных требуют явного разрешения клиента. Без него система возвращает черновик для согласования.
+- Изменение утверждений о законодательстве, платформах или рынке должно ссылаться на актуальную запись `docs/source-registers/source-register.json`. Устаревший или недоступный источник означает статус `not assessed`.
+- Визуальное исполнение направляется в `chwezi-design-engine`, который на некоторых устройствах хранится в папке `design-system-skills`; разработка сайтов — в `website-skills`.
 
-## What is inside
+<a id="what-is-inside"></a>
+## Что находится внутри
 
-The engine holds 112 active `SKILL.md` files across 15 category folders under `skills/`. A further folder, `frameworks/`, holds only inactive aliases.
+В `skills/` находятся 112 действующих файлов `SKILL.md` в 15 папках-категориях. Дополнительная папка `frameworks/` содержит только неактивные перенаправления.
 
-The tables in this README were regenerated from the filesystem and `docs/skill-aliases.yml` on 29 Sep 2026; `tests/test_engine_quality.py` fails if they drift from either.
+Таблицы этого README были сформированы заново по файловой структуре и `docs/skill-aliases.yml` 29 сентября 2026 года. Тест `tests/test_engine_quality.py` выявляет расхождения с этими источниками.
 
-| Category | Skills |
-|---|---:|
-| `advertising` | 11 |
-| `ai-marketing` | 6 |
-| `business-development` | 6 |
-| `content-writing` | 7 |
-| `frameworks` | 0 (inactive aliases only) |
-| `language` | 4 |
-| `meta-analytics-ops` | 13 |
-| `meta-utility` | 3 |
-| `pipeline` | 13 |
-| `platforms` | 8 |
-| `playbooks` | 17 |
-| `policies` | 1 |
-| `sectors` | 2 |
-| `seo-discovery` | 2 |
-| `strategy` | 15 |
-| `training` | 4 |
-| **Total** | **112** |
+| Раздел | Каталог | Навыков |
+|---|---|---:|
+| Реклама и медиапланирование | `advertising` | 11 |
+| ИИ в маркетинге | `ai-marketing` | 6 |
+| Продажи и развитие агентства | `business-development` | 6 |
+| Контент и копирайтинг | `content-writing` | 7 |
+| Языки и редакционные стандарты | `language` | 4 |
+| Аналитика, бюджеты и отчётность | `meta-analytics-ops` | 13 |
+| Создание, проверка и улучшение навыков | `meta-utility` | 3 |
+| Работа с клиентом: от брифа до плана кампании | `pipeline` | 13 |
+| Платформы и социальные сети | `platforms` | 8 |
+| Управление и рабочие процессы | `playbooks` | 17 |
+| Политики и этика | `policies` | 1 |
+| Отраслевые решения | `sectors` | 2 |
+| Поиск, SEO и прогнозирование спроса | `seo-discovery` | 2 |
+| Маркетинговая стратегия | `strategy` | 15 |
+| Обучение | `training` | 4 |
+| **Всего** | | **112** |
 
-The full list of skills is in the two catalogue sections below.
+В `frameworks/` нет действующих навыков: в исходной таблице этому каталогу соответствует значение 0.
 
-The 2026-09-29 consolidation retired 83 skills. Each stays on disk as an inactive `ALIAS.md`, and [docs/skill-aliases.yml](docs/skill-aliases.yml) routes it to the active skill that now holds its content (see [Retired skill routes](#retired-skill-routes)).
+Полный список находится в двух разделах каталога ниже и в [отдельном README навыков](skills/README.md).
 
-## Installation
+При объединении 29 сентября 2026 года были выведены из использования 83 навыка. Каждый сохранён как неактивный `ALIAS.md`, а [docs/skill-aliases.yml](docs/skill-aliases.yml) указывает действующий навык, которому переданы материалы. См. [перенаправления устаревших навыков](#retired-skill-routes).
 
-You need:
+<a id="installation"></a>
+## Установка
 
-- Claude Code, for the plugin route.
-- Node.js 18 or later, for the installer scripts.
-- Python 3.11 or later (CI uses 3.12) with `PyYAML`, for the validators and tests.
-- Git, for cloning.
+Потребуются:
 
-### Claude Code plugin
+- Claude Code — для установки в виде плагина.
+- Node.js 18 или новее — для установочных скриптов.
+- Python 3.11 или новее; в CI используется 3.12. Для валидаторов и тестов нужен `PyYAML`.
+- Git — для клонирования.
 
-The repository ships a Claude Code marketplace (`.claude-plugin/marketplace.json`, marketplace `chwezi-social`) containing one plugin, `social`. The two install commands are step 1 of [Start here](#start-here).
+<a id="claude-code-plugin"></a>
+### Плагин Claude Code
 
-### Installer scripts
+В репозитории есть каталог плагинов Claude Code: `.claude-plugin/marketplace.json`, название `chwezi-social`. Он содержит один плагин — `social`. Две команды установки приведены в первом пункте раздела [с чего начать](#start-here).
 
-`install.sh` and `install.ps1` both run `scripts/install-engine.js`. It copies `skills/`, `hooks/` and `rules/` into a Claude root. It records what it wrote in `.chwezi/install-state.json`, so uninstall removes only its own files.
+<a id="installer-scripts"></a>
+### Установочные скрипты
 
-- `--scope user` (the default) targets `~/.claude`.
-- `--scope project` targets `.claude` in the current directory.
-- `--dry-run` prints the plan without writing.
+`install.sh` и `install.ps1` запускают `scripts/install-engine.js`. Он копирует `skills/`, `hooks/` и `rules/` в корневую папку настроек Claude. Список созданных файлов записывается в `.chwezi/install-state.json`, поэтому удаление затрагивает только файлы этого набора.
+
+- `--scope user` — значение по умолчанию; устанавливает в `~/.claude`.
+- `--scope project` — устанавливает в `.claude` текущей папки.
+- `--dry-run` — показывает план без записи файлов.
 
 ```sh
 git clone https://github.com/peterbamuhigire/social-media-skills
 cd social-media-skills
-bash install.sh --scope project --dry-run   # macOS, Linux or Git Bash; drop --dry-run to install
+bash install.sh --scope project --dry-run   # macOS, Linux или Git Bash; уберите --dry-run для установки
 .\install.ps1 --scope user                  # Windows PowerShell
 node scripts/install-engine.js doctor --scope user
 node scripts/install-engine.js uninstall --engine social-media-skills --scope user
 ```
 
+<a id="codex"></a>
 ### Codex
 
-Codex reads the standard layout directly. Clone the repository and point Codex at [`AGENTS.md`](AGENTS.md), which routes to `skills/<category>/<skill-name>/SKILL.md`. The Codex-only model-policy check is described in [`.codex/README.md`](.codex/README.md):
+Codex читает стандартную структуру напрямую. Клонируйте репозиторий и укажите Codex файл [`AGENTS.md`](AGENTS.md): он направляет к `skills/<category>/<skill-name>/SKILL.md`. Проверка настроек моделей, предназначенная только для Codex, описана в [`.codex/README.md`](.codex/README.md):
 
 ```text
 python3 <engine-root>/.codex/ensure_model_policy.py --runtime codex --check
 ```
 
-Claude skips that step. The check exits 1 and reports drift when no Codex configuration exists.
+Claude пропускает этот шаг. Если конфигурация Codex отсутствует, проверка завершается с кодом 1 и сообщает о расхождении настроек.
 
-### Manual use
+<a id="manual-use"></a>
+### Использование вручную
 
-Clone the repository. Read [`CLAUDE.md`](CLAUDE.md), which imports [`AGENTS.md`](AGENTS.md), as the router. Then open the matching `SKILL.md` and its `references/`.
+Клонируйте репозиторий. Прочитайте [`CLAUDE.md`](CLAUDE.md), который подключает [`AGENTS.md`](AGENTS.md) с правилами выбора навыков. Затем откройте подходящий `SKILL.md` и нужные материалы из `references/`.
 
-## Validation
+<a id="validation"></a>
+## Проверка
 
-Run these checks from the repository root before a release.
+Перед выпуском выполняйте проверки из корня репозитория.
 
-- `PyYAML` is the only dependency the Python checks need. There is no requirements file. `pyyaml` 6.0.3 was used on 31 October 2026.
-- The test suite is `unittest`, which is what CI runs. `pytest` is optional and collects the same tests.
+- Единственная зависимость Python-проверок — `PyYAML`. Отдельного файла зависимостей нет. При проверках 31 октября 2026 года использовался `pyyaml` 6.0.3.
+- Набор тестов использует `unittest`; его же запускает CI. `pytest` необязателен и собирает те же тесты.
 
 ```sh
 python3 -m pip install PyYAML
@@ -237,299 +267,315 @@ node scripts/generate-plugin-manifest.js --engine . --check
 python3 -X utf8 skills/meta-utility/skill-writing/scripts/quick_validate.py skills/<category>/<skill-name>
 ```
 
-| Command | What it checks | Result on 2026-10-31 |
+| Команда | Что проверяет | Результат на 31 октября 2026 года |
 |---|---|---|
-| `validate_skill_engine.py --baseline quality-baseline.json` | Skill contract, 300-line budget, zero-debt baseline | Exit 0: 112 skills, 112 compliant, median 121 lines |
-| `check_package_integrity.py` | The 5,000-entry ceiling on the checkout and the package tree | Exit 0: 0 findings |
-| `check_machine_paths.py` | No host-specific paths in active content | Exit 0 |
-| `check_skill_aliases.py` | Retired-skill routes and the 120-skill cap | Exit 0: 83 routes, 112 active |
-| `routing_smoke_test.py --min-rank1 92 --lint-fixtures` | 400 routing fixtures, owned negatives, fixture lint (lexical proxy, not live routing) | Exit 0: 400 of 400 in the top three, precision at 1 381 of 400 (95.2%), 125 of 125 owned negatives |
-| `check_source_freshness.py` | Source register: overdue, quarantined or malformed records | **Exit 1**: five quarantined records (see [Quality and improvement](#quality-and-improvement)) |
-| `source_ingestion_guardrail.py` | No book extractions or reconstructive book content | Exit 0: 0 findings |
-| `unittest discover` | The repository test suite | Exit 0: 116 tests (`pytest` 9.0.3 also reports 116 passed) |
-| `tests/agent-integration/test_social_media_agent_contract.py` | The engine manifest against the router, skill glob and the coordination catalogue | Exit 0 (reports `NOT ASSESSED` for the catalogue when `chwezi-engine-agents` is not a sibling folder) |
-| `hooks/test-destructive-bash-gate.js`, `hooks/test-plugin-hook-config.js` | The shipped command-gate hook | Exit 0: 61 of 61 and 7 of 7 |
-| `generate-plugin-manifest.js --engine . --check` | `.claude-plugin/plugin.json` lists every active skill | Exit 0: current, 112 skills |
-| `quick_validate.py <skill-dir>` | One skill's frontmatter and structure | Exit 0 for the two skill folders run (`playbook-crisis-communications`, `blog-writer`) |
+| `validate_skill_engine.py --baseline quality-baseline.json` | Требования к навыкам, предел 300 строк и отсутствие допущенных нарушений | Код 0: 112 навыков, все соответствуют требованиям, медиана — 121 строка |
+| `check_package_integrity.py` | Предел 5000 элементов в рабочей копии и дереве пакета | Код 0: замечаний нет |
+| `check_machine_paths.py` | Отсутствие путей, привязанных к конкретному компьютеру, в действующих материалах | Код 0 |
+| `check_skill_aliases.py` | Перенаправления устаревших навыков и предел 120 действующих навыков | Код 0: 83 перенаправления, 112 действующих навыков |
+| `routing_smoke_test.py --min-rank1 92 --lint-fixtures` | 400 примеров выбора навыка, отрицательные примеры и корректность тестовых данных; лексическая имитация, а не реальная работа модели | Код 0: 400 из 400 в первой тройке; первое место — 381 из 400, или 95,2%; отрицательные примеры — 125 из 125 |
+| `check_source_freshness.py` | Просроченные, карантинные и некорректные записи реестра источников | **Код 1:** пять карантинных записей; см. [качество и улучшения](#quality-and-improvement) |
+| `source_ingestion_guardrail.py` | Отсутствие извлечений и материалов, восстанавливающих содержание книг | Код 0: замечаний нет |
+| `unittest discover` | Тесты репозитория | Код 0: 116 тестов; `pytest` 9.0.3 также сообщает о 116 пройденных тестах |
+| `tests/agent-integration/test_social_media_agent_contract.py` | Соответствие манифеста правилам выбора навыков, списку файлов навыков и каталогу координации | Код 0; каталог отмечается как `NOT ASSESSED`, если рядом нет папки `chwezi-engine-agents` |
+| `hooks/test-destructive-bash-gate.js`, `hooks/test-plugin-hook-config.js` | Поставляемый обработчик контроля команд | Код 0: 61 из 61 и 7 из 7 |
+| `generate-plugin-manifest.js --engine . --check` | Наличие всех действующих навыков в `.claude-plugin/plugin.json` | Код 0: манифест актуален, 112 навыков |
+| `quick_validate.py <skill-dir>` | Метаданные и структура одного навыка | Код 0 для двух проверенных папок: `playbook-crisis-communications` и `blog-writer` |
 
-One exit is not 0 on purpose: `check_source_freshness.py` exits 1 while five quarantined records stay overdue.
+Одна проверка намеренно завершается не с нулевым кодом: `check_source_freshness.py` возвращает 1, пока пять карантинных записей остаются просроченными.
 
-**Also available**
+**Дополнительные инструменты**
 
-- `scripts/validate_media_plan_provenance.py <plan.json> [--as-of YYYY-MM-DD]` checks the evidence origin of a media plan's numeric inputs. It also checks the source state of the platform specifications the plan cites.
-- `scripts/campaign_behaviour.py` and `scripts/kaizen_phase1_contracts.py` run synthetic fixtures.
-- `scripts/measure_skill_scaffolding.py` reports repeated scaffolding.
+- `scripts/validate_media_plan_provenance.py <plan.json> [--as-of YYYY-MM-DD]` проверяет происхождение числовых исходных данных медиаплана и статус источников упомянутых требований платформ.
+- `scripts/campaign_behaviour.py` и `scripts/kaizen_phase1_contracts.py` запускают синтетические контрольные примеры.
+- `scripts/measure_skill_scaffolding.py` показывает повторяющиеся структурные блоки.
 
-**Which checks need extra tools**
+**Каким проверкам нужны дополнительные инструменты**
 
-- None of the Python or Node checks above needs PowerShell, Pandoc, Mermaid, a browser, LibreOffice or a container.
-- They ran on Linux (Fedora 44, Python 3.14.8, Node 22).
-- Not exercised on Linux: `install.ps1` (needs PowerShell, which was not installed) and `install.sh` without `--dry-run`. The second writes to a Claude root, so use `--scope project` in a scratch folder.
-- `install.sh` is not marked executable in the repository, so call it through `bash`.
-- Producing `.docx`, `.pdf` or `.xlsx` deliverables is separate from validation. It needs the tools named in `AGENTS.md` under Document and Spreadsheet Tooling.
+- Перечисленным проверкам на Python и Node не нужны PowerShell, Pandoc, Mermaid, браузер, LibreOffice или контейнер.
+- Проверки выполнялись в Linux: Fedora 44, Python 3.14.8, Node 22.
+- В Linux не проверялись `install.ps1`, требующий отсутствовавшего PowerShell, и `install.sh` без `--dry-run`. Последний записывает файлы в настройки Claude, поэтому для пробной установки следует использовать `--scope project` во временной папке.
+- Файл `install.sh` не помечен как исполняемый, поэтому его нужно запускать через `bash`.
+- Создание документов `.docx`, `.pdf` и `.xlsx` — отдельная задача, не входящая в проверки. Для неё нужны инструменты из раздела Document and Spreadsheet Tooling в `AGENTS.md`.
 
-## Quality and improvement
+<a id="quality-and-improvement"></a>
+## Качество и улучшения
 
-The evidence for the October 2026 Kaizen cycles is in two folders:
+Подтверждающие материалы октябрьских циклов Kaizen находятся в двух папках:
 
-- Pass 1, 29 October 2026: [`docs/kaizen/2026-10-engine-kaizen/`](docs/kaizen/2026-10-engine-kaizen/).
-- Pass 2, 31 October 2026: [`docs/kaizen/2026-10-engine-kaizen-pass-2/`](docs/kaizen/2026-10-engine-kaizen-pass-2/).
+- Первый проход, 29 октября 2026 года: [`docs/kaizen/2026-10-engine-kaizen/`](docs/kaizen/2026-10-engine-kaizen/).
+- Второй проход, 31 октября 2026 года: [`docs/kaizen/2026-10-engine-kaizen-pass-2/`](docs/kaizen/2026-10-engine-kaizen-pass-2/).
 
-Each folder holds the same records, with its `logs/` and `tasks/`: scope and evidence, baseline scorecard, backlog, currentness, experiment log, validation record, final report and next-cycle handoff. The [documentation index](docs/README.md) lists the earlier dated records.
+Обе папки содержат одинаковые виды записей, а также подпапки `logs/` и `tasks/`: границы работы и подтверждения, исходную оценку, список улучшений, проверку актуальности, журнал экспериментов, результаты проверок, итоговый отчёт и передачу задач следующему циклу. Более ранние записи перечислены в [оглавлении документации](docs/README.md).
 
-Every Kaizen cycle starts from the currentness gate of the Digital Research engine (GitHub repository `chwezi-research-engine`; catalogue id `digital-research-skills`).
+Каждый цикл Kaizen начинается с проверки актуальности по правилам исследовательского набора Digital Research: репозиторий `chwezi-research-engine`, идентификатор каталога `digital-research-skills`.
 
-### Latest published score
+<a id="latest-published-score"></a>
+### Последняя опубликованная оценка
 
-The pass 2 [final report](docs/kaizen/2026-10-engine-kaizen-pass-2/05-final-report.md) gives raw 60.0. The published score, capped at `min(raw, 65)`, is 60.0. The cap did not bind, and the 95/100 target was not reached. Pass 1 closed at 58.5, and the pass 2 baseline was 58.2.
+В [итоговом отчёте второго прохода](docs/kaizen/2026-10-engine-kaizen-pass-2/05-final-report.md) исходная оценка составляет 60,0. Опубликованная оценка рассчитывается как `min(raw, 65)` и также равна 60,0. Верхний предел не повлиял на результат; цель 95 из 100 не достигнута. Первый проход завершился с оценкой 58,5, а исходная оценка второго прохода была 58,2.
 
-The scores are self-assessed from named measures. No independent re-grade and no behavioural (Tier 3) model run took place. The changes behind these scores are under [What the October 2026 kaizen improved](#what-the-october-2026-kaizen-improved).
+Оценки выставлены автором по названным показателям. Независимой переоценки и поведенческого запуска модели уровня Tier 3 не было. Изменения, стоящие за оценками, описаны в разделе [что улучшили циклы Kaizen](#what-the-october-2026-kaizen-improved).
 
-### Open findings that matter to a user
+<a id="open-findings-that-matter-to-a-user"></a>
+### Незакрытые замечания, важные пользователю
 
-- **The source-freshness gate exits 1.** Five quarantined records have been overdue since 2026-10-11. They stay `NOT_ASSESSED` until their primary text is read.
+- **Проверка актуальности источников возвращает код 1.** Пять карантинных записей просрочены с 11 октября 2026 года. До чтения первичного текста они сохраняют статус `NOT_ASSESSED`.
 
-  - `UG-DPPR-2021`: Uganda Data Protection and Privacy Regulations 2021.
-  - `UG-COPYRIGHT-2026`: Uganda Copyright and Neighbouring Rights (Amendment) Act 2026.
-  - `KE-DP-GENERAL-2021`: Kenya Data Protection (General) Regulations 2021.
-  - `RW-DPP-2021`: Rwanda Law No. 058/2021.
-  - `ITU-INTERNET-USAGE`: no skill uses it.
+  - `UG-DPPR-2021`: правила Уганды о защите данных и конфиденциальности 2021 года.
+  - `UG-COPYRIGHT-2026`: поправки 2026 года к закону Уганды об авторском праве и смежных правах.
+  - `KE-DP-GENERAL-2021`: общие правила Кении о защите данных 2021 года.
+  - `RW-DPP-2021`: закон Руанды № 058/2021.
+  - `ITU-INTERNET-USAGE`: не используется ни одним навыком.
 
-  Do not release a claim that depends on any of them, including the Ugandan and Kenyan direct-marketing rows of the [legal and market release gate](docs/quality-gates/legal-market-release-gate.md).
+  Нельзя выпускать утверждения, зависящие от этих записей, включая строки о прямом маркетинге в Уганде и Кении в [проверке правовых и рыночных условий](docs/quality-gates/legal-market-release-gate.md).
 
-  The CI workflow runs this check, so that job fails while the gate exits 1. Details: [03-currentness.md](docs/kaizen/2026-10-engine-kaizen-pass-2/03-currentness.md).
-- **Registered legal statuses are narrow.** `UG-DPPA-2019`, `UG-UCC-ADS-2019`, `TZ-PDPA` and `TZ-PDPR-2023` are `partial`. They record what was read, not that a campaign or post complies. Amendments to the Ugandan Act after December 2023 and any UCC revision were not searched.
-- **Platform specification values are unread.** The platform-specification gate in `validate_media_plan_provenance.py` proves the state of a register record, not the value a platform page shows. Open the live page at each build date.
-- **Routing is lexical and thinly covered.** At the pass 2 close, 9 of 112 skills had three positive and two owned-negative fixtures. The target is 56.
-- **Not yet done:** a four-week launch calendar variant, a tie-break for overlapping media-class thresholds, LinkedIn page-field limits from a LinkedIn Help Centre source, and a broader claim audit. They are listed in [06-next-cycle.md](docs/kaizen/2026-10-engine-kaizen-pass-2/06-next-cycle.md).
+  Эта проверка запускается в CI, поэтому соответствующее задание не проходит, пока она возвращает код 1. Подробности: [03-currentness.md](docs/kaizen/2026-10-engine-kaizen-pass-2/03-currentness.md).
+- **Правовые статусы в реестре имеют узкие границы.** `UG-DPPA-2019`, `UG-UCC-ADS-2019`, `TZ-PDPA` и `TZ-PDPR-2023` отмечены как `partial` — «частично проверено». Они фиксируют прочитанный материал, а не соответствие кампании или публикации законодательству. Поправки к закону Уганды после декабря 2023 года и пересмотры требований UCC не искались.
+- **Значения требований платформ не прочитаны.** Проверка в `validate_media_plan_provenance.py` подтверждает статус записи реестра, а не значение на странице платформы. При каждой подготовке материала нужно открывать актуальную страницу.
+- **Выбор навыков проверяется лексически, покрытие ограничено.** К завершению второго прохода только 9 из 112 навыков имели по три положительных и два закреплённых отрицательных примера. Цель — 56.
+- **Ещё не сделано:** вариант календаря запуска на четыре недели, правило разрешения пересекающихся порогов классификации медиа, ограничения полей страницы LinkedIn по источнику справочного центра LinkedIn и расширенный аудит утверждений. Задачи перечислены в [06-next-cycle.md](docs/kaizen/2026-10-engine-kaizen-pass-2/06-next-cycle.md).
 
-### Date-triggered gates
+<a id="date-triggered-gates"></a>
+### Проверки, зависящие от даты
 
-`check_source_freshness.py` fails from the day after a record's `next_review`. As of 2026-10-31 it already fails because of the five quarantines above.
+`check_source_freshness.py` начинает выдавать ошибку на следующий день после даты `next_review` записи. По состоянию на 31 октября 2026 года ошибка уже есть из-за пяти карантинных записей выше.
 
-If no record is re-verified, further records become overdue on the dates below. The counts are records that are overdue and not quarantined, measured with `--as-of`.
+Без повторной проверки источников следующие записи станут просроченными в указанные даты. Количество — накопительное число просроченных записей вне карантина, измеренное с параметром `--as-of`.
 
-| Run with `--as-of` | Overdue, not quarantined (cumulative) | Newly overdue since the row above |
+| Дата запуска с `--as-of` | Просрочено вне карантина, накопительно | Новые просроченные записи относительно предыдущей строки |
 |---|---:|---|
 | 2026-11-08 | 1 | `BING-AI-PERFORMANCE-2026` |
 | 2026-11-13 | 2 | `UG-PDPO-ORG` |
-| 2026-11-29 | 20 | 18 records due 2026-11-18 to 2026-11-28, 14 of them on 2026-11-28 (including the three Computer Misuse records) |
-| 2026-12-01 | 22 | `META-AD-STANDARDS` and `UG-FACEBOOK-ACCESS-2026` (due 2026-11-30) |
-| 2026-12-30 | 90 | 68 records due 2026-12-07 to 2026-12-29, 44 of them on 2026-12-29 |
-| 2027-01-30 | 95 | `UG-DPPA-2019`, `UG-UCC-ADS-2019`, `TZ-PDPA` and `TZ-PDPR-2023` (due 2027-01-29), plus one due 2027-01-09 |
-| 2027-03-30 | 149 | 54 records due 2027-03-23 to 2027-03-29, 44 of them on 2027-03-29 |
-| 2027-09-30 | 174 | The last 25 records (due 2027-09-29); every record that is not quarantined is now overdue |
+| 2026-11-29 | 20 | 18 записей со сроками с 2026-11-18 по 2026-11-28, из них 14 — на 2026-11-28, включая три записи Computer Misuse |
+| 2026-12-01 | 22 | `META-AD-STANDARDS` и `UG-FACEBOOK-ACCESS-2026`, срок — 2026-11-30 |
+| 2026-12-30 | 90 | 68 записей со сроками с 2026-12-07 по 2026-12-29, из них 44 — на 2026-12-29 |
+| 2027-01-30 | 95 | `UG-DPPA-2019`, `UG-UCC-ADS-2019`, `TZ-PDPA` и `TZ-PDPR-2023`, срок — 2027-01-29; ещё одна запись со сроком 2027-01-09 |
+| 2027-03-30 | 149 | 54 записи со сроками с 2027-03-23 по 2027-03-29, из них 44 — на 2027-03-29 |
+| 2027-09-30 | 174 | Последние 25 записей со сроком 2027-09-29; все записи вне карантина становятся просроченными |
 
-`validate_media_plan_provenance.py` fails the same way for any plan that cites an overdue register record. The pass 2 sample plan fails with `--as-of 2027-01-01` because `META-AD-STANDARDS` is overdue by then.
+`validate_media_plan_provenance.py` аналогично отклоняет медиаплан, ссылающийся на просроченную запись. Пример плана второго прохода не проходит с `--as-of 2027-01-01`, поскольку к этой дате просрочен `META-AD-STANDARDS`.
 
-The test suite pins its dates and is not date-triggered. The proposed next audit is 2026-11-30, or earlier once the five quarantined records are read.
+Даты тестового набора зафиксированы; эти тесты не зависят от текущего дня. Следующий аудит предложен на 30 ноября 2026 года или раньше, после чтения пяти карантинных источников.
 
-## What the October 2026 kaizen improved
+<a id="what-the-october-2026-kaizen-improved"></a>
+## Что улучшили циклы Kaizen в октябре 2026 года
 
-Two Kaizen cycles ran on this engine: pass 1 on 29 October and pass 2 on 31 October 2026. A documentation wave followed.
+Для этого набора выполнены два цикла: первый — 29 октября, второй — 31 октября 2026 года. Затем последовал этап обновления документации.
 
-Every commit named below is on `main` and was checked with `git show --stat`. Neither cycle reverted a kept change. The items rest on commands and counts, not on the self-assessed scores.
+Все перечисленные коммиты находятся в `main` и проверены через `git show --stat`. Ни один цикл не отменил принятое улучшение. Выводы опираются на команды и измеренные количества, а не на самооценки.
 
-What did not change: the source-freshness gate exits 1 before and after both cycles, the 95/100 target was not reached, and no paid or behavioural model run took place.
+Что не изменилось: проверка актуальности источников возвращает код 1 до и после обоих циклов; цель 95 из 100 не достигнута; платного или поведенческого запуска модели не было.
 
-This section is a summary. The unabridged text is in [the detail record](docs/kaizen/2026-10-readme-kaizen/october-2026-kaizen-detail.md). The evidence behind it:
+Здесь приведён обзор. Полный текст находится в [подробной записи](docs/kaizen/2026-10-readme-kaizen/october-2026-kaizen-detail.md). Подтверждения:
 
-- [Pass 1 final report](docs/kaizen/2026-10-engine-kaizen/05-final-report.md)
-- [Pass 1 experiment log](docs/kaizen/2026-10-engine-kaizen/03-experiment-log.md)
-- [Pass 2 final report](docs/kaizen/2026-10-engine-kaizen-pass-2/05-final-report.md)
-- [Pass 2 backlog](docs/kaizen/2026-10-engine-kaizen-pass-2/02-improvement-backlog.md)
-- [Pass 2 experiment log](docs/kaizen/2026-10-engine-kaizen-pass-2/03-experiment-log.md)
-- [Pass 2 validation record](docs/kaizen/2026-10-engine-kaizen-pass-2/04-validation-record.md)
+- [Итоговый отчёт первого прохода](docs/kaizen/2026-10-engine-kaizen/05-final-report.md)
+- [Журнал экспериментов первого прохода](docs/kaizen/2026-10-engine-kaizen/03-experiment-log.md)
+- [Итоговый отчёт второго прохода](docs/kaizen/2026-10-engine-kaizen-pass-2/05-final-report.md)
+- [Список улучшений второго прохода](docs/kaizen/2026-10-engine-kaizen-pass-2/02-improvement-backlog.md)
+- [Журнал экспериментов второго прохода](docs/kaizen/2026-10-engine-kaizen-pass-2/03-experiment-log.md)
+- [Результаты проверок второго прохода](docs/kaizen/2026-10-engine-kaizen-pass-2/04-validation-record.md)
 
-### Measured before and after
+<a id="measured-before-and-after"></a>
+### Измерения до и после
 
-"Re-measured" means the command was run on 2026-10-31 on a `git archive` snapshot of the commit named, or against the register held at that commit. "Evidence" means the figure is copied from the file named, because a score cannot be re-measured.
+«Повторно измерено» означает, что команда запускалась 31 октября 2026 года на снимке указанного коммита, полученном через `git archive`, или на реестре из этого коммита. «По материалам» означает, что показатель взят из указанного файла: оценку нельзя измерить повторным запуском команды.
 
-| Measure | Pass 1 (29 Oct) | Pass 2 (31 Oct) | Basis |
+| Показатель | Первый проход, 29 октября | Второй проход, 31 октября | Основание |
 |---|---|---|---|
-| Raw score, self-assessed | 58.5 to 58.5 | 58.2 to 60.0 | Evidence: [pass 1 scorecard](docs/kaizen/2026-10-engine-kaizen/01-baseline-scorecard.md), [pass 2 final report](docs/kaizen/2026-10-engine-kaizen-pass-2/05-final-report.md) (note 1) |
-| Published score, `min(raw, 65)` | 58.5 to 58.5 | 58.2 to 60.0 | Evidence, same files. The cap did not bind at any point |
-| Source-freshness findings (gate exits 1 at every point) | 23 to 10 | 11 to 5 | Re-measured: current `check_source_freshness.py` against the registers at `3664c85^` and `3664c85` (`--as-of 2026-10-29`) and at `f5e1ab1` and `HEAD` (`--as-of 2026-10-31`) |
-| Routing fixtures, all passing, top three 1.000 | 392 to 396 | 396 to 400 | Re-measured: `routing_smoke_test.py --lint-fixtures` on snapshots of `750982a`, `891bb43`, `f5e1ab1` and the current tree |
-| Lexical precision at 1 | 373/392 to 377/396 | 377/396 to 381/400 | Same runs; 95.2% each time. A lexical proxy, not live routing |
-| Owned negatives, all passing | 121 to 123 | 123 to 125 | Same runs |
-| Skills with three positives and two owned negatives (of 112; target 56) | 4 to 7 | 7 to 9 | Re-measured with `docs/kaizen/consolidation-2026-09-29/evidence/S13/measure_routing.py` on the same snapshots |
-| Tests run by `unittest discover`, all passing | 70 to 92 | 92 to 116 | Re-measured on the same snapshots |
-| Host-specific path lines in active content and router blocks | not measured | 5 to 0 | Evidence: [pass 2 baseline](docs/kaizen/2026-10-engine-kaizen-pass-2/01-baseline-scorecard.md), confirmed by `grep` at `ecef6e1^`; now 0 by `grep` and `check_machine_paths.py` (note 2) |
+| Исходная самооценка | 58,5 → 58,5 | 58,2 → 60,0 | По материалам: [оценка первого прохода](docs/kaizen/2026-10-engine-kaizen/01-baseline-scorecard.md), [итоговый отчёт второго прохода](docs/kaizen/2026-10-engine-kaizen-pass-2/05-final-report.md); примечание 1 |
+| Опубликованная оценка `min(raw, 65)` | 58,5 → 58,5 | 58,2 → 60,0 | По тем же материалам; верхний предел ни разу не повлиял на результат |
+| Замечания проверки актуальности источников; на каждом этапе код 1 | 23 → 10 | 11 → 5 | Повторно измерено: текущий `check_source_freshness.py` на реестрах `3664c85^` и `3664c85` с `--as-of 2026-10-29`, а также `f5e1ab1` и `HEAD` с `--as-of 2026-10-31` |
+| Примеры выбора навыка; все проходят, попадание в тройку — 1,000 | 392 → 396 | 396 → 400 | Повторно измерено: `routing_smoke_test.py --lint-fixtures` на снимках `750982a`, `891bb43`, `f5e1ab1` и текущего дерева |
+| Лексическая точность первого места | 373/392 → 377/396 | 377/396 → 381/400 | Те же запуски; каждый раз 95,2%. Лексическая имитация, а не реальная работа модели |
+| Закреплённые отрицательные примеры; все проходят | 121 → 123 | 123 → 125 | Те же запуски |
+| Навыки с тремя положительными и двумя закреплёнными отрицательными примерами; всего 112, цель 56 | 4 → 7 | 7 → 9 | Повторно измерено скриптом `docs/kaizen/consolidation-2026-09-29/evidence/S13/measure_routing.py` на тех же снимках |
+| Тесты, запущенные через `unittest discover`; все проходят | 70 → 92 | 92 → 116 | Повторно измерено на тех же снимках |
+| Строки с путями конкретного компьютера в действующих материалах и правилах выбора навыков | Не измерялось | 5 → 0 | По материалам: [исходная оценка второго прохода](docs/kaizen/2026-10-engine-kaizen-pass-2/01-baseline-scorecard.md), подтверждённая `grep` на `ecef6e1^`; сейчас 0 по `grep` и `check_machine_paths.py`; примечание 2 |
 
-1. The pass 2 baseline was lower than the pass 1 close because three dimensions lost a point for defects that were newly measured.
-2. The 5 lines were 4 in `AGENTS.md` and 1 in the skill-writing skill. The step to 3 was `ecef6e1`. The step to 0 was the documentation wave (`830f154`).
+1. Исходная оценка второго прохода ниже результата первого, поскольку три направления потеряли по баллу из-за впервые измеренных дефектов.
+2. Из пяти строк четыре находились в `AGENTS.md`, одна — в навыке создания навыков. Снижение до трёх выполнено в `ecef6e1`, до нуля — на этапе документации, `830f154`.
 
-## The 17 changes, by type
+<a id="the-17-changes-by-type"></a>
+## 17 изменений по направлениям
 
-Each item names its commit and the pass that made it. The unabridged wording is in [the detail record](docs/kaizen/2026-10-readme-kaizen/october-2026-kaizen-detail.md).
+Для каждого пункта указаны коммит и проход, в котором сделано изменение. Полная формулировка находится в [подробной записи](docs/kaizen/2026-10-readme-kaizen/october-2026-kaizen-detail.md).
 
-### Correctness and safety fixes, most serious first
+<a id="correctness-and-safety-fixes-most-serious-first"></a>
+### Исправления корректности и безопасности: сначала наиболее существенные
 
-1. **The source gate passed quarantined sources** (`a80bc2e`, pass 1). Quarantine code `3664c85` blocked a record only if it was also overdue. Every `quarantined: true` record now blocks. A scratch-register check exited 0 before the fix and 1 after.
-2. **The outreach checklist overstated a statute** (`d5c8a4c`, pass 2). It said that processing personal data without prior consent (s.7, Uganda Data Protection and Privacy Act 2019) "is an offence". The Act states the consent rule at s.7 with no penalty; offences are in ss.35 to 37. `tests/test_legal_claim_guard.py` guards the corrected sentence.
-3. **A symlinked `.claude-plugin` directory could resolve manifest files outside the checkout** (`15e73a8`, pass 1). The package check now refuses it before reading. An escape-path regression test covers it.
-4. **A malformed quarantine flag was treated as absent** (`b42b6ea`, pass 1). A non-boolean `quarantined` value now fails closed (`test_malformed_quarantine_flag_fails_closed`).
-5. **Nothing stopped a quarantine being cleared without evidence** (`5aed7e2`, pass 2). A release now needs a `scope`, a `release_basis`, a `partial` or `verified` status and a `verified_on` date equal to the release date. Three of the four new tests failed first ([log](docs/kaizen/2026-10-engine-kaizen-pass-2/logs/test-released-quarantine.txt)).
-6. **The media-planning workflow numbered two steps "6."** (`a4ef219`, pass 1). Steps now run 1 to 10, with a regression test.
+1. **Проверка источников пропускала карантинные записи**: `a80bc2e`, первый проход. Код карантина из `3664c85` блокировал запись, только если она также была просрочена. Теперь блокируется любая запись с `quarantined: true`. Проверка временного реестра до исправления возвращала код 0, после — 1.
+2. **Список проверки первичных обращений преувеличивал содержание закона**: `d5c8a4c`, второй проход. В нём обработка персональных данных без предварительного согласия по статье 7 закона Уганды 2019 года называлась правонарушением. Статья 7 устанавливает правило согласия без санкции; правонарушения описаны в статьях 35–37. Исправленную формулировку контролирует `tests/test_legal_claim_guard.py`.
+3. **Символическая ссылка вместо папки `.claude-plugin` могла направить чтение манифестов за пределы рабочей копии**: `15e73a8`, первый проход. Теперь проверка пакета отклоняет такую папку до чтения; добавлен регрессионный тест выхода за границы пути.
+4. **Некорректный флаг карантина считался отсутствующим**: `b42b6ea`, первый проход. Небулево значение `quarantined` теперь блокирует проверку: `test_malformed_quarantine_flag_fails_closed`.
+5. **Карантин можно было снять без подтверждений**: `5aed7e2`, второй проход. Теперь нужны `scope`, `release_basis`, статус `partial` или `verified`, а дата `verified_on` должна совпадать с датой снятия карантина. До исправления три из четырёх новых тестов не проходили: [журнал](docs/kaizen/2026-10-engine-kaizen-pass-2/logs/test-released-quarantine.txt).
+6. **В процессе медиапланирования два шага имели номер 6**: `a4ef219`, первый проход. Теперь шаги идут от 1 до 10; добавлен регрессионный тест.
 
-### Source currentness
+<a id="source-currentness"></a>
+### Актуальность источников
 
-7. **23 overdue records blocked the gate without separating reviewed from unreviewed ones** (`3664c85` with `40d6cd7`, pass 1). Thirteen were re-scoped as `partial` after the official page was opened. Ten were quarantined as `NOT_ASSESSED`. A quarantine is a block, not clearance. [Detail](docs/kaizen/2026-10-engine-kaizen/03-currentness.md).
-8. **Primary text was read for records that pass 1 could not open** (`b6dc4e0`, pass 2). Five quarantines were released as `partial` with a recorded scope, one record was re-checked and three bad URLs were corrected. Findings fell from 11 to 5. The commit subject says "six sources"; five were released and one re-checked. Sites that blocked automated access were not worked around. [Detail](docs/kaizen/2026-10-engine-kaizen-pass-2/03-currentness.md).
+7. **23 просроченные записи блокировали проверку без разделения проверенных и непроверенных источников**: `3664c85` и `40d6cd7`, первый проход. Для 13 записей уточнили границы и установили `partial` после открытия официальных страниц. Десять поместили на карантин со статусом `NOT_ASSESSED`. Карантин означает блокировку, а не разрешение: [подробности](docs/kaizen/2026-10-engine-kaizen/03-currentness.md).
+8. **Прочитаны первичные тексты, недоступные во время первого прохода**: `b6dc4e0`, второй проход. Пять записей выведены из карантина со статусом `partial` и зафиксированными границами проверки; одна запись проверена повторно, исправлены три URL. Число замечаний уменьшилось с 11 до 5. В названии коммита указано шесть источников: пять выведены из карантина, один проверен повторно. Блокировки автоматического доступа сайтов не обходились: [подробности](docs/kaizen/2026-10-engine-kaizen-pass-2/03-currentness.md).
 
-### Gaps filled in skills and references
+<a id="gaps-filled-in-skills-and-references"></a>
+### Устранённые пробелы в навыках и справочных материалах
 
-9. **The README cited the UCC Advertising Standards 2019 but no skill carried a check** (`a86f456`, pass 2). The new reference `skills/content-writing/references/uganda-advertising-standards-check.md` records that no clause names social media or influencers, so application to social posts is `NOT_ASSESSED`. Not re-run here: the extracted text is outside the repository ([log](docs/kaizen/2026-10-engine-kaizen-pass-2/logs/clause-screen-text-checks.txt)).
-10. **The crisis playbook had no route for a service outage with a possible data question** (`14ab9be`, pass 2). The new reference `skills/playbooks/playbook-crisis-communications/references/service-outage-and-data-incident-communications.md` states the Act's s.23(1) to (5) notification duty from primary text. It bars refund wording that the contract does not supply.
-11. **The overlay identifiers (ME1 to ME7, AS1 to AS7) sat only in a child reference that the identifier scan missed** (`ecc151a`, pass 1). They are now exposed at the entry skill, and `tests/test_anti_slop_overlay.py` guards the crosswalk. This proves the checks can be found, not that a model applies them.
+9. **README ссылался на рекламные стандарты UCC 2019 года, но ни один навык не выполнял проверку**: `a86f456`, второй проход. Новый материал `skills/content-writing/references/uganda-advertising-standards-check.md` фиксирует, что положения не называют соцсети и инфлюенсеров, поэтому применимость к публикациям отмечена как `NOT_ASSESSED`. Здесь проверка не повторялась: извлечённый текст находится вне репозитория; [журнал](docs/kaizen/2026-10-engine-kaizen-pass-2/logs/clause-screen-text-checks.txt).
+10. **В кризисной инструкции отсутствовал сценарий сбоя сервиса с возможным инцидентом данных**: `14ab9be`, второй проход. Новый материал `skills/playbooks/playbook-crisis-communications/references/service-outage-and-data-incident-communications.md` передаёт обязанность уведомления по статье 23, пунктам 1–5, из первичного текста закона. Он запрещает обещать возвраты, не предусмотренные договором.
+11. **Идентификаторы дополнительных правил ME1–ME7 и AS1–AS7 находились только в дочернем справочном файле, пропущенном поиском идентификаторов**: `ecc151a`, первый проход. Теперь они доступны в основном файле навыка, а `tests/test_anti_slop_overlay.py` проверяет соответствие. Это подтверждает возможность найти правила, а не применение их моделью.
 
-### New checks and tests
+<a id="new-checks-and-tests"></a>
+### Новые проверки и тесты
 
-12. **No size or identity check on the package** (`177e2a0`, pass 1). `scripts/check_package_integrity.py` enforces a 5,000-entry ceiling on the checkout and the package tree. It fails closed on an incomplete walk and checks the plugin name, version and path set. CI runs it.
-13. **Media-plan numbers could appear without an origin** (`5a2f371`, pass 1). `scripts/validate_media_plan_provenance.py` requires an origin (`observed`, `client_input` or `synthetic_assumption`) and a source for every numeric input. Figures stay synthetic assumptions, not forecasts.
-14. **Platform specifications had no source-state check** (`5b46d84`, pass 2). `platform_specs` entries are refused as `verified` when their register record is quarantined, overdue, absent or not verified. `tests/test_media_plan_provenance.py` passes 18 of 18. The gate proves a record's state, not the value on a platform page.
-15. **No check for host-specific paths** (`ecef6e1`, pass 2). `scripts/check_machine_paths.py` and 5 tests fail on a host path in active content. The checkout failed before the fix and passed after.
+12. **Не было проверки размера и идентичности пакета**: `177e2a0`, первый проход. Скрипт `scripts/check_package_integrity.py` устанавливает предел 5000 элементов для рабочей копии и дерева пакета. Неполный обход считается ошибкой; проверяются название, версия и набор путей плагина. Скрипт запускается в CI.
+13. **В медиаплане могли появляться числа без указания происхождения**: `5a2f371`, первый проход. Скрипт `scripts/validate_media_plan_provenance.py` требует для каждого числового входного значения источник и тип происхождения: `observed`, `client_input` или `synthetic_assumption`. Синтетические допущения сохраняют этот статус и не превращаются в прогнозы.
+14. **У требований платформ не проверялся статус источника**: `5b46d84`, второй проход. Записи `platform_specs` не принимаются как `verified`, если источник на карантине, просрочен, отсутствует или не проверен. В `tests/test_media_plan_provenance.py` проходят 18 из 18 тестов. Проверяется статус записи, а не значение на странице платформы.
+15. **Не было проверки путей, привязанных к конкретному компьютеру**: `ecef6e1`, второй проход. Скрипт `scripts/check_machine_paths.py` и пять тестов обнаруживают такие пути в действующих материалах. До исправления рабочая копия не проходила проверку, после — проходит.
 
-### Routing
+<a id="routing"></a>
+### Выбор навыков
 
-16. **Fixture coverage was thin and tied to few skills** (`f2fd463`, pass 1; `14ab9be` and `7940e14`, pass 2). Fixtures rose from 392 to 400 and owned negatives from 121 to 125. Skills with three positives and two owned negatives rose from 4 to 9 of 112; the target is 56. Precision at 1 stayed at 95.2%. All figures are lexical.
+16. **Покрытие контрольными примерами было небольшим и сосредоточенным на немногих навыках**: `f2fd463`, первый проход; `14ab9be` и `7940e14`, второй. Число примеров выросло с 392 до 400, отрицательных — со 121 до 125. Навыков с тремя положительными и двумя закреплёнными отрицательными примерами стало 9 вместо 4 из 112; цель — 56. Точность первого места осталась 95,2%. Все показатели получены лексической проверкой.
 
-### Documentation and portability
+<a id="documentation-and-portability"></a>
+### Документация и переносимость
 
-17. **Commands and results were Windows-only or missing** (`2abddc7`, `797a0ed`, `948d043`, `57067dd`, `3075062`, `830f154`, `5bfa956`, `6813015`, `b50403e`, documentation wave). The README listed five checks as backslash PowerShell commands with no results. It now lists thirteen commands with measured results, written for Linux. `AGENTS.md` and `rules/common/core.md` use the name `digital-research-skills`. Not run: `install.ps1` and a non-dry-run `install.sh`. [Follow-ups](docs/kaizen/2026-10-engine-kaizen-pass-2/07-docs-followups.md).
+17. **Команды и результаты были ориентированы только на Windows либо отсутствовали**: `2abddc7`, `797a0ed`, `948d043`, `57067dd`, `3075062`, `830f154`, `5bfa956`, `6813015`, `b50403e`; этап документации. README перечислял пять команд PowerShell с обратными косыми чертами и без результатов. Теперь в нём 13 команд с измеренными результатами для Linux. В `AGENTS.md` и `rules/common/core.md` используется имя `digital-research-skills`. Не запускались `install.ps1` и `install.sh` без `--dry-run`: [последующие задачи](docs/kaizen/2026-10-engine-kaizen-pass-2/07-docs-followups.md).
 
-## Skill catalogue: strategy, advertising and measurement
+<a id="skill-catalogue-strategy-advertising-and-measurement"></a>
+## Каталог: стратегия, реклама и измерения
 
-Categories: `advertising`, `meta-analytics-ops`, `pipeline`, `sectors`, `seo-discovery`, `strategy` (56 skills).
+Категории: `advertising`, `meta-analytics-ops`, `pipeline`, `sectors`, `seo-discovery`, `strategy`: 56 навыков. Русские названия и прямые ссылки доступны в [отдельном каталоге](skills/README.md).
 
-| Category | Skill | What it does |
+| Категория | Идентификатор навыка | Что делает |
 |---|---|---|
-| `advertising` | `ad-copy-and-hook-lab` | Writes and tests ad headlines, hooks, offers, proof lines and guarantees across media. |
-| `advertising` | `ad-testing-and-scaling` | Designs ad tests, reads results and decides what to scale, kill or refresh. |
-| `advertising` | `ad-to-site-journey-handoff` | Hands campaign traffic to a landing page with message match, UTMs, events and consent. |
-| `advertising` | `advertising-attribution-and-measurement` | Defines conversion events, attribution models, incrementality tests and break-even ROAS/CPA. |
-| `advertising` | `advertising-strategy-and-budget` | Sets advertising objectives, measurement levels, triangulated budgets and governance terms. |
-| `advertising` | `creative-brief-and-big-idea` | Writes the strategic creative brief, finds the insight and screens campaign ideas. |
-| `advertising` | `direct-response-economics` | Builds pro-forma P&L, break-even and roll-out ladders for response campaigns. |
-| `advertising` | `marketing-mix-modelling` | Specifies a marketing mix model (Meridian or Robyn), its data floor, experiment calibration and which evidence governs which budget decision. |
-| `advertising` | `media-planning` | Builds and reviews media plans: reach, frequency, GRPs, CPM, flighting and post-buy. |
-| `advertising` | `paid-search-advertising` | Plans, specifies and audits Google Ads Search, Performance Max and Demand Gen. |
-| `advertising` | `programmatic-and-brand-safety` | Plans programmatic, CTV, DOOH and audio buying with viewability, invalid-traffic, supply-path and brand-suitability controls. |
-| `meta-analytics-ops` | `measurement-tracking-plan` | Writes the privacy-safe tracking plan: events, UTM convention, Consent Mode v2, Conversions API, enhanced conversions and BigQuery export. |
-| `meta-analytics-ops` | `meta-algorithm-guide` | Builds a platform-ranking reference from current evidence. |
-| `meta-analytics-ops` | `meta-budget-planner` | Allocates a confirmed budget across channels, production, tools and contingency. |
-| `meta-analytics-ops` | `meta-competitor-analysis` | Compares named competitors to find positioning and content gaps. |
-| `meta-analytics-ops` | `meta-content-audit` | Reviews content history to decide what to keep, stop, test or improve. |
-| `meta-analytics-ops` | `meta-content-repurposing` | Turns a proven asset into channel-appropriate derivatives. |
-| `meta-analytics-ops` | `meta-reporting` | Produces monthly written performance reports from verified data. |
-| `meta-analytics-ops` | `meta-roi-framework` | Calculates campaign or channel return from attributable value and cost. |
-| `meta-analytics-ops` | `meta-sales-marketing-alignment` | Defines shared lifecycle stages, ownership and handover rules. |
-| `meta-analytics-ops` | `meta-social-listening` | Sets up listening queries, evidence logs, cadence and escalation. |
-| `meta-analytics-ops` | `meta-social-metrics-framework` | Selects business, funnel and operational metrics with owners. |
-| `meta-analytics-ops` | `meta-testing-framework` | Designs controlled marketing experiments with decision rules. |
-| `meta-analytics-ops` | `meta-tools-stack-evaluation` | Evaluates the marketing technology stack for fit and total cost. |
-| `pipeline` | `01-client-brief` | Turns discovery answers into the full brief and one-page client card. |
-| `pipeline` | `02-platform-audit` | Audits active social profiles and named competitors. |
-| `pipeline` | `03-audience-personas` | Develops research-grounded audience personas. |
-| `pipeline` | `04-brand-voice-intake` | Defines verbal and visual brand direction. |
-| `pipeline` | `05-social-media-strategy` | Produces the master social-media strategy. |
-| `pipeline` | `06-digital-marketing-strategy` | Integrates social, email, search, web, influencer and paid into one plan. |
-| `pipeline` | `07-email-marketing-strategy` | Designs a permission-based email programme and lifecycle. |
-| `pipeline` | `08-influencer-marketing-strategy` | Plans creator programmes with fit, due diligence, rights and measures. |
-| `pipeline` | `09-campaign-strategy` | Plans one focused launch, offer, awareness or event campaign. |
-| `pipeline` | `10-content-pillars` | Defines three to five audience-linked content pillars. |
-| `pipeline` | `11-content-calendar` | Schedules approved pillars and campaigns over 90 days. |
-| `pipeline` | `12-website-content-plan` | Plans 90 days of website and blog content (not the build). |
-| `pipeline` | `13-campaign-brief` | Turns an approved campaign strategy into an executable brief. |
-| `sectors` | `healthcare` | Healthcare marketing: patient-safe content, trust and misinformation response. |
-| `sectors` | `hospitality-hotel-restaurant` | Hospitality marketing for hotels, lodges, restaurants, venues and catering. |
-| `seo-discovery` | `demand-forecasting` | Demand forecasts, stockout timing and reorder decisions from operational data. |
-| `seo-discovery` | `seo-geo-optimisation` | Page-level SEO and generative-search citation readiness. |
-| `strategy` | `brand-strategy-and-distinctive-assets` | Brand building: category entry points, mental and physical availability, distinctive-asset audits, brand/activation balance and brand tracking; includes online-shop differentiation. |
-| `strategy` | `ecommerce-export-marketing-advisory` | Export-market selection, cross-border trust and CAC-bounded campaigns. |
-| `strategy` | `marketing-foundations-stp-positioning` | Segmentation, targeting, positioning, marketing mix and value proposition. |
-| `strategy` | `peso-integrated-strategy` | Coordinates paid, earned, shared and owned channels. |
-| `strategy` | `social-commerce-strategy` | Catalogue, WhatsApp ordering, Mobile Money and fulfilment content. |
-| `strategy` | `strategy-b2b-customer-community` | Retention-first B2B account grading, contact plans and at-risk alerts. |
-| `strategy` | `strategy-channel-architecture` | Platform roles, audience flows, hub-and-spoke routing and effort. |
-| `strategy` | `strategy-creator-monetisation` | Creator revenue options, rate cards, partnerships and products. |
-| `strategy` | `strategy-csr-purpose-communications` | CSR, community-impact and purpose communication. |
-| `strategy` | `strategy-customer-value-journey` | Full-funnel content from awareness to advocacy. |
-| `strategy` | `strategy-ewom-reviews` | Review generation, referrals and electronic word of mouth. |
-| `strategy` | `strategy-experiential-marketing` | Live and hybrid experiences: launches, activations and pop-ups. |
-| `strategy` | `strategy-personal-brand` | Individual positioning, authority, content and monetisation. |
-| `strategy` | `strategy-video-content` | Cross-platform organic video formats, hooks, series and scripts. |
-| `strategy` | `traction-channel-bullseye` | Chooses acquisition channels to test and fund from nineteen traction channels. |
+| `advertising` | `ad-copy-and-hook-lab` | Создаёт и проверяет рекламные заголовки, первые фразы, предложения, доказательства и гарантии для разных медиа. |
+| `advertising` | `ad-testing-and-scaling` | Планирует рекламные тесты, разбирает результаты и определяет, что масштабировать, остановить или обновить. |
+| `advertising` | `ad-to-site-journey-handoff` | Связывает рекламу с посадочной страницей: соответствие сообщения, UTM-метки, события и согласия. |
+| `advertising` | `advertising-attribution-and-measurement` | Определяет события конверсии, модели атрибуции, тесты дополнительного эффекта и пороговые ROAS и CPA для безубыточности. |
+| `advertising` | `advertising-strategy-and-budget` | Задаёт рекламные цели, уровни оценки результатов, бюджет по нескольким методам и правила взаимодействия агентства с клиентом. |
+| `advertising` | `creative-brief-and-big-idea` | Готовит стратегический креативный бриф, находит потребительский инсайт и оценивает идеи кампании. |
+| `advertising` | `direct-response-economics` | Строит прогнозный отчёт о прибыли и убытках, рассчитывает безубыточность и этапы расширения кампаний прямого отклика. |
+| `advertising` | `marketing-mix-modelling` | Готовит постановку модели Meridian или Robyn: минимальные требования к данным, калибровку экспериментами и правила бюджетных решений. |
+| `advertising` | `media-planning` | Строит и проверяет медиапланы: охват, частоту, GRP, CPM, периоды активности и сверку фактического размещения. |
+| `advertising` | `paid-search-advertising` | Планирует, описывает настройки и проверяет кампании Google Ads Search, Performance Max и Demand Gen. |
+| `advertising` | `programmatic-and-brand-safety` | Планирует закупку programmatic, CTV, DOOH и аудио с контролем видимости, недействительного трафика, посредников и уместности размещения. |
+| `meta-analytics-ops` | `measurement-tracking-plan` | Готовит план измерений с учётом конфиденциальности: события, UTM, Consent Mode v2, Conversions API, расширенные конверсии и экспорт в BigQuery. |
+| `meta-analytics-ops` | `meta-algorithm-guide` | Формирует справочник принципов ранжирования контента на платформах по актуальным подтверждённым сведениям. |
+| `meta-analytics-ops` | `meta-budget-planner` | Распределяет согласованный бюджет между каналами, производством, инструментами и резервом. |
+| `meta-analytics-ops` | `meta-competitor-analysis` | Сравнивает конкретных конкурентов, выявляет возможности для позиционирования и пробелы в контенте. |
+| `meta-analytics-ops` | `meta-content-audit` | Анализирует накопленный контент и рекомендует, что сохранить, прекратить, протестировать или улучшить. |
+| `meta-analytics-ops` | `meta-content-repurposing` | Адаптирует проверенный исходный материал в производные форматы с учётом особенностей каждого канала. |
+| `meta-analytics-ops` | `meta-reporting` | Готовит ежемесячные текстовые отчёты о результатах на основе проверенных данных. |
+| `meta-analytics-ops` | `meta-roi-framework` | Рассчитывает отдачу кампании или канала по относимой к нему ценности и затратам. |
+| `meta-analytics-ops` | `meta-sales-marketing-alignment` | Определяет общие этапы жизненного цикла клиента, ответственных и правила передачи работы. |
+| `meta-analytics-ops` | `meta-social-listening` | Задаёт поисковые запросы для мониторинга, журнал подтверждений, периодичность и порядок эскалации. |
+| `meta-analytics-ops` | `meta-social-metrics-framework` | Выбирает бизнес-показатели, показатели воронки и операционные метрики; закрепляет ответственных. |
+| `meta-analytics-ops` | `meta-testing-framework` | Разрабатывает контролируемые маркетинговые эксперименты и правила принятия решений по результатам. |
+| `meta-analytics-ops` | `meta-tools-stack-evaluation` | Оценивает соответствие инструментов задачам и совокупную стоимость их использования. |
+| `pipeline` | `01-client-brief` | Преобразует ответы установочной встречи в полный бриф и краткую карточку клиента на одну страницу. |
+| `pipeline` | `02-platform-audit` | Проверяет действующие профили в социальных сетях и выбранных конкурентов. |
+| `pipeline` | `03-audience-personas` | Разрабатывает портреты сегментов аудитории на основе исследований. |
+| `pipeline` | `04-brand-voice-intake` | Определяет словесное и визуальное направление бренда. |
+| `pipeline` | `05-social-media-strategy` | Готовит основную стратегию присутствия и продвижения в социальных сетях. |
+| `pipeline` | `06-digital-marketing-strategy` | Объединяет социальные сети, email, поиск, сайт, инфлюенсеров и платную рекламу в единый план. |
+| `pipeline` | `07-email-marketing-strategy` | Проектирует email-программу с согласиями получателей и коммуникации по жизненному циклу клиента. |
+| `pipeline` | `08-influencer-marketing-strategy` | Планирует программы с авторами: соответствие бренду, проверку партнёров, права и оценку результатов. |
+| `pipeline` | `09-campaign-strategy` | Планирует кампанию запуска, продвижения предложения, повышения узнаваемости или поддержки события. |
+| `pipeline` | `10-content-pillars` | Определяет от трёх до пяти тематических направлений, связанных с интересами аудитории. |
+| `pipeline` | `11-content-calendar` | Распределяет согласованные темы и кампании в календаре на 90 дней. |
+| `pipeline` | `12-website-content-plan` | Планирует контент сайта и блога на 90 дней; разработка сайта в задачу не входит. |
+| `pipeline` | `13-campaign-brief` | Преобразует согласованную стратегию кампании в бриф для исполнения. |
+| `sectors` | `healthcare` | Планирует безопасный для пациентов контент, укрепление доверия и реагирование на недостоверную информацию. |
+| `sectors` | `hospitality-hotel-restaurant` | Разрабатывает маркетинг для отелей, туристических комплексов, ресторанов, площадок и кейтеринга. |
+| `seo-discovery` | `demand-forecasting` | Готовит прогноз спроса, оценивает сроки исчерпания запасов и потребность в повторных закупках по операционным данным. |
+| `seo-discovery` | `seo-geo-optimisation` | Оптимизирует отдельные страницы для поисковых систем и проверяет готовность к цитированию в генеративных ответах. |
+| `strategy` | `brand-strategy-and-distinctive-assets` | Разрабатывает подход к росту бренда: ситуации выбора, доступность, узнаваемые элементы, баланс брендинга и активации, мониторинг и отличие интернет-магазина. |
+| `strategy` | `ecommerce-export-marketing-advisory` | Помогает выбрать экспортные рынки, выстроить доверие к зарубежному продавцу и ограничить затраты кампаний допустимым CAC. |
+| `strategy` | `marketing-foundations-stp-positioning` | Определяет сегменты, целевую аудиторию, позиционирование, маркетинговый комплекс и ценностное предложение. |
+| `strategy` | `peso-integrated-strategy` | Согласует платные, заработанные, распространяемые сообществом и собственные каналы коммуникации. |
+| `strategy` | `social-commerce-strategy` | Планирует каталог, заказы через WhatsApp, мобильные платежи Mobile Money и контент о выполнении заказов. |
+| `strategy` | `strategy-b2b-customer-community` | Оценивает клиентский портфель с приоритетом удержания, составляет планы контактов и отмечает клиентов с риском ухода. |
+| `strategy` | `strategy-channel-architecture` | Определяет роли платформ, движение аудитории между ними, центральный и вспомогательные каналы и распределение усилий. |
+| `strategy` | `strategy-creator-monetisation` | Разрабатывает варианты заработка автора, прайс-листы, партнёрства и продукты. |
+| `strategy` | `strategy-csr-purpose-communications` | Планирует коммуникации корпоративной социальной ответственности, общественного вклада и миссии. |
+| `strategy` | `strategy-customer-value-journey` | Планирует контент по всей воронке: от знакомства с брендом до рекомендаций. |
+| `strategy` | `strategy-ewom-reviews` | Разрабатывает получение отзывов, реферальные механики и распространение рекомендаций в интернете. |
+| `strategy` | `strategy-experiential-marketing` | Планирует очные и гибридные активности: запуски, активации и временные площадки. |
+| `strategy` | `strategy-personal-brand` | Определяет личное позиционирование, экспертность, контент и монетизацию. |
+| `strategy` | `strategy-video-content` | Планирует органические видео для разных платформ: форматы, первые фразы, серии и сценарии. |
+| `strategy` | `traction-channel-bullseye` | Выбирает из 19 каналов привлечения те, которые стоит тестировать и финансировать. |
 
-## Skill catalogue: content, channels, operations and training
+<a id="skill-catalogue-content-channels-operations-and-training"></a>
+## Каталог: контент, каналы, процессы и обучение
 
-Categories: `ai-marketing`, `business-development`, `content-writing`, `language`, `meta-utility`, `platforms`, `playbooks`, `policies`, `training` (56 skills).
+Категории: `ai-marketing`, `business-development`, `content-writing`, `language`, `meta-utility`, `platforms`, `playbooks`, `policies`, `training`: 56 навыков.
 
-| Category | Skill | What it does |
+| Категория | Идентификатор навыка | Что делает |
 |---|---|---|
-| `ai-marketing` | `ai-generative-search-optimisation` | Plans brand visibility in AI and generative search answers. |
-| `ai-marketing` | `ai-readiness-diagnostic` | Produces a scored AI readiness diagnostic for a marketing team. |
-| `ai-marketing` | `ai-slop-audit` | Audits content for generic AI patterns and sets remediation. |
-| `ai-marketing` | `ai-use-case-mapping` | Maps and prioritises AI use cases across the marketing workflow. |
-| `ai-marketing` | `anti-ai-slop` | Applies the engine's anti-slop writing rules to any deliverable. |
-| `ai-marketing` | `brand-voice-ai-training` | Encodes a brand voice into AI instructions, examples and checks. |
-| `business-development` | `biz-dev-credentials` | Assembles an agency credentials pack from verifiable proof. |
-| `business-development` | `biz-dev-lawful-prospecting-outreach` | Builds lawful B2B prospecting: lists, consent, sequences and speed-to-lead. |
-| `business-development` | `biz-dev-positioning` | Defines agency niche, positioning and differentiation. |
-| `business-development` | `biz-dev-pricing-menu` | Builds a priced services menu with scope and packages. |
-| `business-development` | `biz-dev-proposal` | Drafts client proposals and statements of work. |
-| `business-development` | `eac-call-for-applications-campaign` | Donor-compliant call-for-applications campaigns across the East African Community. |
-| `content-writing` | `blog-writer` | Writes publication-ready blog posts to the engine's standards. |
-| `content-writing` | `caption-writer` | Writes platform-fit social captions with calls to action. |
-| `content-writing` | `content-ideas` | Produces a prioritised set of content ideas by pillar and format. |
-| `content-writing` | `direct-response-funnel-copy` | Writes direct-response funnel copy: offers, pages and follow-up. |
-| `content-writing` | `email-copywriter` | Writes marketing emails and sequences. |
-| `content-writing` | `premium-commercial-writing` | Writes high-value commercial copy for premium offers and audiences. |
-| `content-writing` | `prompt-engineering-library` | Maintains a reusable, tested marketing prompt library. |
-| `language` | `east-african-english` | Sets East African English conventions for local audiences. |
-| `language` | `french-native-copy` | Writes native French social copy for francophone markets. |
-| `language` | `language-standards` | Sets the engine-wide British English and language rules. |
-| `language` | `swahili-native-copy` | Writes native Kiswahili social copy. |
-| `meta-utility` | `kaizen-improvement-system` | Audits and improves the engine or any deliverable it produces. |
-| `meta-utility` | `skill-safety-audit` | Reviews skills for unsafe instructions before adoption or release. |
-| `meta-utility` | `skill-writing` | Creates or upgrades skills under the canonical skill-writing standard. |
-| `platforms` | `platform-facebook` | Facebook channel plan: setup, content, community and measurement. |
-| `platforms` | `platform-google-business-profile` | Google Business Profile plan: setup, posts, reviews and measurement. |
-| `platforms` | `platform-instagram` | Instagram channel plan: setup, content, community and measurement. |
-| `platforms` | `platform-linkedin` | LinkedIn channel plan for personal and professional presence. |
-| `platforms` | `platform-tiktok` | TikTok channel plan: setup, content, community and measurement. |
-| `platforms` | `platform-whatsapp` | WhatsApp channel plan: setup, broadcasts, community and measurement. |
-| `platforms` | `platform-x-twitter` | X (Twitter) channel plan: setup, content and measurement. |
-| `platforms` | `platform-youtube` | YouTube channel plan: setup, content, community and measurement. |
-| `playbooks` | `playbook-agency-operations` | Agency operations playbook: roles, workflow, controls and measures. |
-| `playbooks` | `playbook-chatbot-strategy` | Chatbot strategy playbook: scope, flows, handover and measures. |
-| `playbooks` | `playbook-client-retainer-management` | Playbook for running and renewing client retainers. |
-| `playbooks` | `playbook-community-management` | Community management playbook: moderation, response and escalation. |
-| `playbooks` | `playbook-content-production` | Content production playbook from brief to approved asset. |
-| `playbooks` | `playbook-crisis-communications` | Crisis communications playbook: triage, holding lines and escalation. |
-| `playbooks` | `playbook-daily-operations-routine` | Daily social-media operations routine and checklists. |
-| `playbooks` | `playbook-marketing-automation` | Marketing automation playbook: triggers, flows and controls. |
-| `playbooks` | `playbook-networking` | Professional networking playbook for relationship-led growth. |
-| `playbooks` | `playbook-paid-social-advertising` | Paid social on Meta, TikTok and LinkedIn: audiences, budgets, tracking and optimisation. |
-| `playbooks` | `playbook-post-click-strategy` | Post-click playbook: landing experience, follow-up and conversion. |
-| `playbooks` | `playbook-pr-publicity` | Publicity playbook: angles, pitching and coverage tracking. |
-| `playbooks` | `playbook-reputation-management` | Reputation management playbook: monitoring, response and recovery. |
-| `playbooks` | `playbook-sms-whatsapp-marketing` | SMS and WhatsApp marketing playbook with opt-in controls. |
-| `playbooks` | `playbook-social-media-policy` | Playbook for drafting an organisational social media policy. |
-| `playbooks` | `playbook-social-selling` | Social selling playbook for relationship-led sales. |
-| `playbooks` | `playbook-viral-content-design` | Playbook for designing shareable content with evidence limits. |
-| `policies` | `policy-ai-content-ethics` | Drafts or reviews an organisational AI content ethics policy. |
-| `training` | `training-ai-foundations` | Beginner AI literacy training for marketing teams. |
-| `training` | `training-client-team` | Two-hour social-media handover workshop and workbook. |
-| `training` | `training-smartphone-video-production` | Hands-on smartphone video shooting, sound, light and editing. |
-| `training` | `training-social-media-fundamentals` | Beginner social-media concepts, safety and measurement. |
+| `ai-marketing` | `ai-generative-search-optimisation` | Планирует присутствие бренда в ответах ИИ и генеративном поиске. |
+| `ai-marketing` | `ai-readiness-diagnostic` | Оценивает готовность маркетинговой команды к использованию ИИ и формирует диагностический отчёт с баллами. |
+| `ai-marketing` | `ai-slop-audit` | Выявляет в контенте типовые признаки машинной шаблонности и составляет план исправлений. |
+| `ai-marketing` | `ai-use-case-mapping` | Находит и приоритизирует сценарии использования ИИ в маркетинговых процессах. |
+| `ai-marketing` | `anti-ai-slop` | Применяет правила качества текста к создаваемым материалам, устраняя общие фразы и шаблонные конструкции. |
+| `ai-marketing` | `brand-voice-ai-training` | Преобразует стиль бренда в инструкции для ИИ, примеры и проверки. |
+| `business-development` | `biz-dev-credentials` | Собирает сведения о компетенциях и опыте агентства из проверяемых подтверждений. |
+| `business-development` | `biz-dev-lawful-prospecting-outreach` | Планирует B2B-поиск и обращения с учётом правомерности: списки, согласия, последовательности контактов и скорость ответа на заявку. |
+| `business-development` | `biz-dev-positioning` | Определяет нишу, позиционирование и отличия агентства. |
+| `business-development` | `biz-dev-pricing-menu` | Формирует перечень услуг с ценами, составом работ и пакетными предложениями. |
+| `business-development` | `biz-dev-proposal` | Готовит клиентские предложения и документы, определяющие объём и условия работ. |
+| `business-development` | `eac-call-for-applications-campaign` | Планирует кампанию сбора заявок в Восточноафриканском сообществе с соблюдением требований донора. |
+| `content-writing` | `blog-writer` | Пишет готовые к публикации статьи по стандартам репозитория. |
+| `content-writing` | `caption-writer` | Пишет тексты с призывом к действию и адаптацией под конкретную платформу. |
+| `content-writing` | `content-ideas` | Готовит приоритизированный набор идей по тематическим направлениям и форматам. |
+| `content-writing` | `direct-response-funnel-copy` | Создаёт тексты прямого отклика: предложения, страницы и последующие сообщения. |
+| `content-writing` | `email-copywriter` | Пишет маркетинговые письма и последовательности рассылок. |
+| `content-writing` | `premium-commercial-writing` | Создаёт коммерческие тексты для дорогих предложений и соответствующей аудитории. |
+| `content-writing` | `prompt-engineering-library` | Формирует и поддерживает библиотеку проверенных маркетинговых промптов для повторного использования. |
+| `language` | `east-african-english` | Задаёт нормы английского языка для местной аудитории Восточной Африки. |
+| `language` | `french-native-copy` | Пишет тексты для социальных сетей на естественном французском для франкоязычных рынков. |
+| `language` | `language-standards` | Устанавливает общие языковые правила и нормы британского английского для репозитория. |
+| `language` | `swahili-native-copy` | Пишет тексты для социальных сетей на естественном суахили. |
+| `meta-utility` | `kaizen-improvement-system` | Проверяет и улучшает репозиторий или создаваемые с его помощью материалы. |
+| `meta-utility` | `skill-safety-audit` | Проверяет навыки на небезопасные инструкции перед внедрением или выпуском. |
+| `meta-utility` | `skill-writing` | Создаёт и улучшает навыки по единому стандарту репозитория. |
+| `platforms` | `platform-facebook` | Планирует настройку, контент, работу с сообществом и измерение результатов в Facebook. |
+| `platforms` | `platform-google-business-profile` | Планирует настройку профиля компании, публикации, отзывы и измерение результатов. |
+| `platforms` | `platform-instagram` | Планирует настройку, контент, работу с сообществом и измерение результатов в Instagram. |
+| `platforms` | `platform-linkedin` | Планирует личное и профессиональное присутствие в LinkedIn. |
+| `platforms` | `platform-tiktok` | Планирует настройку, контент, работу с сообществом и измерение результатов в TikTok. |
+| `platforms` | `platform-whatsapp` | Планирует настройку, рассылки, работу с сообществом и измерение результатов в WhatsApp. |
+| `platforms` | `platform-x-twitter` | Планирует настройку, контент и измерение результатов в X / Twitter. |
+| `platforms` | `platform-youtube` | Планирует настройку, контент, работу с сообществом и измерение результатов в YouTube. |
+| `playbooks` | `playbook-agency-operations` | Готовит операционные инструкции агентства: роли, рабочие процессы, контроль и показатели. |
+| `playbooks` | `playbook-chatbot-strategy` | Определяет задачи чат-бота, сценарии диалога, передачу человеку и показатели результатов. |
+| `playbooks` | `playbook-client-retainer-management` | Организует работу по постоянным клиентским договорам и их продление. |
+| `playbooks` | `playbook-community-management` | Задаёт порядок модерации, ответов участникам и эскалации проблем. |
+| `playbooks` | `playbook-content-production` | Описывает процесс производства контента от брифа до согласованного материала. |
+| `playbooks` | `playbook-crisis-communications` | Определяет оценку ситуации, предварительные публичные сообщения и порядок эскалации. |
+| `playbooks` | `playbook-daily-operations-routine` | Формирует повседневный порядок работы с социальными сетями и контрольные списки. |
+| `playbooks` | `playbook-marketing-automation` | Проектирует триггеры, последовательности действий и контроль автоматизаций. |
+| `playbooks` | `playbook-networking` | Планирует профессиональные знакомства и рост через деловые отношения. |
+| `playbooks` | `playbook-paid-social-advertising` | Планирует аудитории, бюджеты, отслеживание и оптимизацию рекламы в Meta, TikTok и LinkedIn. |
+| `playbooks` | `playbook-post-click-strategy` | Планирует опыт на посадочной странице, последующие контакты и конверсию. |
+| `playbooks` | `playbook-pr-publicity` | Разрабатывает информационные поводы и обращения к СМИ, организует учёт публикаций. |
+| `playbooks` | `playbook-reputation-management` | Описывает мониторинг репутации, реагирование и восстановление доверия. |
+| `playbooks` | `playbook-sms-whatsapp-marketing` | Планирует SMS- и WhatsApp-коммуникации с проверкой согласий получателей. |
+| `playbooks` | `playbook-social-media-policy` | Готовит внутреннюю политику работы организации в социальных сетях. |
+| `playbooks` | `playbook-social-selling` | Описывает продажи через развитие отношений с потенциальными клиентами в социальных сетях. |
+| `playbooks` | `playbook-viral-content-design` | Проектирует контент для распространения аудиторией с обозначением границ доказательности. |
+| `policies` | `policy-ai-content-ethics` | Разрабатывает или проверяет политику организации по этичному использованию ИИ при создании контента. |
+| `training` | `training-ai-foundations` | Готовит вводное обучение использованию ИИ для маркетологов. |
+| `training` | `training-client-team` | Готовит двухчасовой семинар по передаче работы с социальными сетями и рабочую тетрадь. |
+| `training` | `training-smartphone-video-production` | Готовит практическое обучение съёмке, звуку, свету и монтажу видео на смартфон. |
+| `training` | `training-social-media-fundamentals` | Объясняет начинающим основные понятия, безопасность и измерение результатов в социальных сетях. |
 
-## Retired skill routes
+<a id="retired-skill-routes"></a>
+## Перенаправления устаревших навыков
 
-Never run an `ALIAS.md`. Use the active owner below; the retired skill's unique content lives in the owner's `references/`. 83 routes, checked by `scripts/check_skill_aliases.py`.
+Никогда не выполняйте `ALIAS.md`. Используйте действующий навык из правого столбца: уникальные материалы устаревшего навыка находятся в его `references/`. Всего 83 перенаправления, проверяемых скриптом `scripts/check_skill_aliases.py`.
 
-| Retired skill (inactive `ALIAS.md`) | Active owner |
+| Устаревший навык: неактивный `ALIAS.md` | Действующий навык |
 |---|---|
 | `ai-marketing/ai-agentic-marketing-workflows` | `playbooks/playbook-marketing-automation` |
 | `ai-marketing/ai-avatar-personalised-video` | `strategy/strategy-video-content` |
@@ -553,7 +599,7 @@ Never run an `ALIAS.md`. Use the active owner below; the retired skill's unique 
 | `business-development/biz-dev-reactivation-campaign` | `pipeline/07-email-marketing-strategy` |
 | `business-development/biz-dev-social-media-audit-offer` | `pipeline/02-platform-audit` |
 | `business-development/biz-dev-video-outreach` | `business-development/biz-dev-lawful-prospecting-outreach` |
-| `content-writing` (former category standards file) | `content-writing/premium-commercial-writing` |
+| `content-writing` | `content-writing/premium-commercial-writing` |
 | `content-writing/blog-idea-generator` | `content-writing/content-ideas` |
 | `content-writing/content-whitepaper-ebook` | `content-writing/blog-writer` |
 | `content-writing/copywriting-brochure` | `content-writing/premium-commercial-writing` |
@@ -615,16 +661,20 @@ Never run an `ALIAS.md`. Use the active owner below; the retired skill's unique 
 | `training/training-ai-prompt-writing` | `training/training-ai-foundations` |
 | `training/training-diy-content` | `training/training-client-team` |
 
-## Sources and references
+Строка `content-writing` обозначает бывший общий файл стандартов категории; его содержание передано в `content-writing/premium-commercial-writing`.
 
-The engine cites 197 books, 5 repositories, 81 standards and official sources, 122 further source-register sources and 22 websites and articles.
+<a id="sources-and-references"></a>
+## Источники и ссылки
 
-The lists are citations only: no book content is stored in this repository. Read them in [docs/references.md](docs/references.md). The register at `docs/source-registers/source-register.json` holds the sources that decide legal, platform and market claims.
+Система ссылается на 197 книг, 5 репозиториев, 81 стандарт и официальный источник, ещё 122 источника из реестра и 22 сайта и статьи.
 
-## Contributing, author and licence
+Списки содержат только библиографические ссылки; тексты книг в репозитории не хранятся. Список находится в [docs/references.md](docs/references.md). Источники, определяющие утверждения о законодательстве, платформах и рынке, внесены в `docs/source-registers/source-register.json`.
 
-Read [`CONTRIBUTING.md`](CONTRIBUTING.md) before you change a skill. It lists the checks to run.
+<a id="contributing-author-and-licence"></a>
+## Участие в проекте, автор и лицензия
 
-New skills follow the [authoring standard](docs/standards/skill-authoring-standard.md) and the [skill template](docs/templates/SKILL.template.md). The documentation index is [docs/README.md](docs/README.md), and the history is in [`CHANGELOG.md`](CHANGELOG.md).
+Перед изменением навыка прочитайте [`CONTRIBUTING.md`](CONTRIBUTING.md): там перечислены необходимые проверки.
 
-The engine is by Peter Bamuhigire of Chwezi Core Systems. It is released under the MIT licence in [`LICENSE`](LICENSE).
+Новые навыки создаются по [стандарту написания](docs/standards/skill-authoring-standard.md) и [шаблону навыка](docs/templates/SKILL.template.md). Оглавление документации находится в [docs/README.md](docs/README.md), история изменений — в [`CHANGELOG.md`](CHANGELOG.md).
+
+Автор системы — Peter Bamuhigire, Chwezi Core Systems. Проект распространяется по лицензии MIT: [`LICENSE`](LICENSE).
